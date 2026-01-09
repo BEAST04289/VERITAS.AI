@@ -44,13 +44,28 @@ export default function VeritasCommandCenter() {
         <header className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-white" />
+              {/* Premium Abstract Logo */}
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 flex items-center justify-center overflow-hidden">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#gradient1)" opacity="0.9" />
+                  <path d="M2 17L12 22L22 17" stroke="url(#gradient2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M2 12L12 17L22 12" stroke="url(#gradient2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  <defs>
+                    <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="12" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#60a5fa" />
+                      <stop offset="1" stopColor="#a78bfa" />
+                    </linearGradient>
+                    <linearGradient id="gradient2" x1="2" y1="12" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                      <stop stopColor="#60a5fa" />
+                      <stop offset="1" stopColor="#a78bfa" />
+                    </linearGradient>
+                  </defs>
+                </svg>
               </div>
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0a0a0a]" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#0a0a0a]" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold tracking-tight">VERITAS</h1>
+              <h1 className="text-xl font-semibold tracking-tight bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">VERITAS</h1>
               <p className="text-xs text-neutral-500">Physics Verification Engine</p>
             </div>
           </div>
