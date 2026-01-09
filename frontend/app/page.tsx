@@ -58,7 +58,7 @@ export default function VeritasCommandCenter() {
                   backgroundPosition: ["200% 0%", "-200% 0%"],
                 }}
                 transition={{
-                  duration: 3,
+                  duration: 6,
                   repeat: Infinity,
                   ease: "linear",
                 }}
@@ -76,15 +76,15 @@ export default function VeritasCommandCenter() {
                 <motion.span
                   className="text-blue-400"
                   animate={{
-                    opacity: [0.4, 1, 0.4],
+                    opacity: [0.5, 0.8, 0.5],
                     textShadow: [
-                      "0 0 4px rgba(96, 165, 250, 0.3)",
-                      "0 0 20px rgba(96, 165, 250, 0.8), 0 0 40px rgba(96, 165, 250, 0.4)",
-                      "0 0 4px rgba(96, 165, 250, 0.3)",
+                      "0 0 2px rgba(96, 165, 250, 0.2)",
+                      "0 0 8px rgba(96, 165, 250, 0.4), 0 0 16px rgba(96, 165, 250, 0.2)",
+                      "0 0 2px rgba(96, 165, 250, 0.2)",
                     ],
                   }}
                   transition={{
-                    duration: 2,
+                    duration: 3,
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
