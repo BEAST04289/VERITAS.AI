@@ -42,31 +42,57 @@ export default function VeritasCommandCenter() {
 
         {/* Header */}
         <header className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              {/* Premium Abstract Logo */}
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-neutral-700 flex items-center justify-center overflow-hidden">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#gradient1)" opacity="0.9" />
-                  <path d="M2 17L12 22L22 17" stroke="url(#gradient2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M2 12L12 17L22 12" stroke="url(#gradient2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <defs>
-                    <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="12" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#60a5fa" />
-                      <stop offset="1" stopColor="#a78bfa" />
-                    </linearGradient>
-                    <linearGradient id="gradient2" x1="2" y1="12" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#60a5fa" />
-                      <stop offset="1" stopColor="#a78bfa" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#0a0a0a]" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold tracking-tight bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent">VERITAS</h1>
-              <p className="text-xs text-neutral-500">Physics Verification Engine</p>
+          <div className="flex items-center gap-3">
+            {/* Premium Text Logo with Gradient Sweep */}
+            <div className="relative flex items-baseline">
+              <motion.h1
+                className="text-2xl font-semibold tracking-tight"
+                style={{
+                  background: "linear-gradient(90deg, #4a4a4a 0%, #ffffff 50%, #4a4a4a 100%)",
+                  backgroundSize: "200% 100%",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+                animate={{
+                  backgroundPosition: ["200% 0%", "-200% 0%"],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                VERITAS
+              </motion.h1>
+              {/* Blinking Shiny Dot */}
+              <motion.span
+                className="relative ml-0.5"
+                style={{
+                  fontSize: "2rem",
+                  lineHeight: 1,
+                }}
+              >
+                <motion.span
+                  className="text-blue-400"
+                  animate={{
+                    opacity: [0.4, 1, 0.4],
+                    textShadow: [
+                      "0 0 4px rgba(96, 165, 250, 0.3)",
+                      "0 0 20px rgba(96, 165, 250, 0.8), 0 0 40px rgba(96, 165, 250, 0.4)",
+                      "0 0 4px rgba(96, 165, 250, 0.3)",
+                    ],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  .
+                </motion.span>
+              </motion.span>
+              <span className="text-2xl font-semibold tracking-tight text-neutral-500">AI</span>
             </div>
           </div>
 
