@@ -1,99 +1,203 @@
 "use client";
 import React, { useState } from "react";
-import { FollowerPointerCard } from "@/components/ui/following-pointer";
-import { GlitchText, CRTOverlay } from "@/components/ui/effects";
-import { Upload, ShieldAlert, Activity, Crosshair } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { Upload, Shield, Activity, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+
+// Premium Design System
+const COLORS = {
+  bg: "#0a0a0a",
+  surface: "#141414",
+  surfaceHover: "#1a1a1a",
+  border: "#262626",
+  borderSubtle: "#1f1f1f",
+  text: "#fafafa",
+  textMuted: "#a1a1a1",
+  textSubtle: "#525252",
+  accent: "#3b82f6",
+  accentMuted: "#1d4ed8",
+  danger: "#ef4444",
+  dangerMuted: "#991b1b",
+  success: "#22c55e",
+};
 
 export default function VeritasCommandCenter() {
-  const [analyzing, setAnalyzing] = useState(false);
+  const [status, setStatus] = useState<"idle" | "analyzing" | "verdict">("idle");
+  const [verdict, setVerdict] = useState<"synthetic" | "authentic" | null>(null);
+
+  const handleDemo = () => {
+    setStatus("analyzing");
+    setTimeout(() => {
+      setStatus("verdict");
+      setVerdict("synthetic");
+    }, 3000);
+  };
 
   return (
-    <main className="min-h-screen bg-black text-white p-6 font-mono overflow-hidden">
-      <FollowerPointerCard className="h-full w-full" title={
-        <div className="flex items-center gap-2 px-2 py-1 bg-cyan-900/80 rounded-full border border-cyan-500/50">
-          <Crosshair size={12} className="text-cyan-200" />
-          <span className="text-cyan-200 text-[10px] font-bold">VERITAS // TARGETING</span>
-        </div>
-      }>
+    <main className="min-h-screen bg-[#0a0a0a] text-white antialiased">
+      {/* Subtle gradient background */}
+      <div className="fixed inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-[#0f0f12] pointer-events-none" />
 
-        {/* HEADER */}
-        <nav className="flex justify-between items-center mb-8 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 bg-red-600 animate-pulse rounded-sm" />
-            <h1 className="text-3xl font-bold tracking-[0.3em] text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-500">
-              VERITAS
-            </h1>
-          </div>
-          <div className="flex gap-4 text-xs text-emerald-500">
-            <span>PHYSICS_ENGINE: ONLINE</span>
-            <span>GEMINI_VISION: CONNECTED</span>
-          </div>
-        </nav>
+      {/* Main Container */}
+      <div className="relative max-w-7xl mx-auto px-6 py-8">
 
-        {/* BENTO GRID LAYOUT */}
-        <div className="grid grid-cols-12 grid-rows-6 gap-4 h-[85vh]">
-
-          {/* 1. MAIN FEED (Video Input) */}
-          <div className="col-span-8 row-span-4 rounded-xl border border-white/10 bg-slate-900/50 relative overflow-hidden group">
-            <div className="absolute inset-0 flex flex-col items-center justify-center cursor-none z-20 pointer-events-none">
-              <Upload className="w-16 h-16 text-slate-700 group-hover:text-cyan-400 transition-colors duration-500" />
-              <span className="mt-4 text-sm text-slate-500 uppercase tracking-widest">Drop Subject Footage</span>
+        {/* Header */}
+        <header className="flex items-center justify-between mb-12">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                <Shield className="w-5 h-5 text-white" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#0a0a0a]" />
             </div>
-            {/* Scanline Effect */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent h-full w-full pointer-events-none animate-[scan_3s_ease-in-out_infinite]" />
-            {/* Grid Overlay */}
-            <div className="absolute inset-0 bg-[url('https://ui.aceternity.com/grid.svg')] bg-center [mask-image:linear-gradient(to_bottom,white,transparent)] opacity-20 pointer-events-none" />
-          </div>
-
-          {/* 2. LIVE TELEMETRY (Physics Data) */}
-          <div className="col-span-4 row-span-3 rounded-xl border border-white/10 bg-black p-4 relative">
-            <div className="flex items-center gap-2 mb-4 text-cyan-400">
-              <Activity size={16} />
-              <h3 className="text-xs uppercase tracking-widest">Real-time Gravity (g)</h3>
-            </div>
-            {/* Fake Graph for UI Demo */}
-            <div className="flex items-end gap-1 h-32 w-full mt-8">
-              {[40, 60, 45, 90, 30, 80, 50, 70, 40, 100].map((h, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ height: 0 }}
-                  animate={{ height: `${h}%` }}
-                  transition={{ duration: 0.5, delay: i * 0.1, repeat: Infinity, repeatType: "reverse" }}
-                  className={`w-full rounded-t-sm ${h > 80 ? "bg-red-600" : "bg-cyan-900"}`}
-                />
-              ))}
-            </div>
-            <div className="absolute top-2 right-2 text-[10px] text-slate-600">t=0.4s</div>
-          </div>
-
-          {/* 3. THREAT LOG (Console) */}
-          <div className="col-span-4 row-span-3 rounded-xl border border-white/10 bg-slate-950 p-4 font-mono text-[10px] text-green-400/70 overflow-hidden">
-            <div className="border-b border-white/5 pb-2 mb-2 text-white/40 uppercase">Sys.log</div>
-            <div className="flex flex-col gap-1">
-              <span>{">"}Initializing Trajectory Fit...</span>
-              <span>{">"}Analyzing Object ID: #8821...</span>
-              <span className="text-red-500">{">"}WARNING: Parabolic Anomaly Detected</span>
-              <span>{">"}Accel_Y = 14.2 m/s^2 (Expected: 9.8)</span>
-            </div>
-          </div>
-
-          {/* 4. THE VERDICT (Final Result) */}
-          <div className="col-span-8 row-span-2 rounded-xl border border-red-900/30 bg-red-950/10 flex items-center justify-between p-8 relative overflow-hidden">
             <div>
-              <h2 className="text-sm text-red-400 uppercase tracking-[0.5em] mb-2">Analysis Result</h2>
-              <div className="text-6xl font-bold text-white tracking-tighter">SYNTHETIC</div>
-            </div>
-            <ShieldAlert className="w-32 h-32 text-red-600/20 absolute -right-4 -bottom-4" />
-            <div className="text-right">
-              <div className="text-4xl font-bold text-red-500">99.8%</div>
-              <div className="text-xs text-red-400 uppercase">Confidence</div>
+              <h1 className="text-xl font-semibold tracking-tight">VERITAS</h1>
+              <p className="text-xs text-neutral-500">Physics Verification Engine</p>
             </div>
           </div>
 
+          <div className="flex items-center gap-6 text-xs text-neutral-500">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+              <span>Engine Online</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+              <span>Gemini Connected</span>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Grid */}
+        <div className="grid grid-cols-12 gap-4">
+
+          {/* Video Upload Area */}
+          <motion.div
+            className="col-span-8 aspect-video rounded-2xl border border-neutral-800 bg-neutral-900/50 relative overflow-hidden group cursor-pointer"
+            whileHover={{ borderColor: "#3b82f6" }}
+            transition={{ duration: 0.2 }}
+            onClick={handleDemo}
+          >
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <AnimatePresence mode="wait">
+                {status === "idle" && (
+                  <motion.div
+                    key="idle"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex flex-col items-center"
+                  >
+                    <div className="w-16 h-16 rounded-2xl bg-neutral-800/50 border border-neutral-700 flex items-center justify-center mb-4 group-hover:border-blue-500/50 transition-colors">
+                      <Upload className="w-6 h-6 text-neutral-500 group-hover:text-blue-400 transition-colors" />
+                    </div>
+                    <p className="text-sm text-neutral-500 mb-1">Drop video to analyze</p>
+                    <p className="text-xs text-neutral-600">or click to run demo</p>
+                  </motion.div>
+                )}
+
+                {status === "analyzing" && (
+                  <motion.div
+                    key="analyzing"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className="flex flex-col items-center"
+                  >
+                    <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
+                    <p className="text-sm text-neutral-400">Analyzing physics...</p>
+                  </motion.div>
+                )}
+
+                {status === "verdict" && verdict === "synthetic" && (
+                  <motion.div
+                    key="verdict"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center"
+                  >
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", delay: 0.2 }}
+                      className="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-4"
+                    >
+                      <AlertTriangle className="w-10 h-10 text-red-500" />
+                    </motion.div>
+                    <p className="text-2xl font-semibold text-red-400 mb-1">SYNTHETIC</p>
+                    <p className="text-sm text-neutral-500">AI-generated content detected</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Subtle grid pattern */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+              style={{
+                backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
+                backgroundSize: '40px 40px'
+              }}
+            />
+          </motion.div>
+
+          {/* Right Panel */}
+          <div className="col-span-4 space-y-4">
+
+            {/* Physics Data */}
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <Activity className="w-4 h-4 text-neutral-500" />
+                <h3 className="text-sm font-medium text-neutral-400">Physics Analysis</h3>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-neutral-500">Gravity (g)</span>
+                  <span className="text-sm font-mono text-red-400">14.2 m/s²</span>
+                </div>
+                <div className="w-full h-1 bg-neutral-800 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-blue-500 to-red-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: status !== "idle" ? "85%" : "0%" }}
+                    transition={{ duration: 2, ease: "easeOut" }}
+                  />
+                </div>
+                <div className="flex justify-between text-xs text-neutral-600">
+                  <span>Expected: 9.8</span>
+                  <span>Deviation: +45%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* System Log */}
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5 h-48">
+              <h3 className="text-sm font-medium text-neutral-400 mb-4">System Log</h3>
+              <div className="font-mono text-xs space-y-2 text-neutral-500">
+                <p className="opacity-50">Initializing trajectory fit...</p>
+                <p className="opacity-70">Object tracking: Subject #1</p>
+                <p className="text-yellow-500/80">Parabolic anomaly detected</p>
+                <p className="text-red-400">Gravity violation: +45%</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Stats */}
+          <div className="col-span-12 grid grid-cols-4 gap-4">
+            {[
+              { label: "Confidence", value: "99.8%", color: "text-red-400" },
+              { label: "Frames Analyzed", value: "847", color: "text-neutral-300" },
+              { label: "Objects Tracked", value: "3", color: "text-neutral-300" },
+              { label: "Processing Time", value: "2.4s", color: "text-neutral-300" },
+            ].map((stat, i) => (
+              <div key={i} className="rounded-xl border border-neutral-800 bg-neutral-900/30 p-4">
+                <p className="text-xs text-neutral-500 mb-1">{stat.label}</p>
+                <p className={`text-xl font-semibold ${stat.color}`}>{stat.value}</p>
+              </div>
+            ))}
+          </div>
+
         </div>
-      </FollowerPointerCard>
-      <CRTOverlay />
+      </div>
     </main>
   );
 }
