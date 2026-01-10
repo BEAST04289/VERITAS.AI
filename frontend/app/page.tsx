@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Zap, MessageSquare, AlertTriangle, CheckCircle, Loader2, Video } from "lucide-react";
+import { Upload, Zap, MessageSquare, AlertTriangle, CheckCircle, Loader2, Video, Shield } from "lucide-react";
 import { useVeritasAnalysis } from "@/hooks/use-veritas-analysis";
+import { useKillSwitch } from "@/hooks/use-kill-switch";
 import { ScanningOverlay } from "@/components/ui/scanning-overlay";
 import { WaterRipple } from "@/components/ui/water-ripple";
 
@@ -14,20 +15,46 @@ export default function VeritasCommandCenter() {
   const [userInput, setUserInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Demo mode messages state
+  const [demoMessages, setDemoMessages] = useState<Array<{ level: string; message: string }>>([]);
+  const [demoPhysics, setDemoPhysics] = useState<any>(null);
+  const [demoVerdict, setDemoVerdict] = useState<any>(null);
+  const [demoProgress, setDemoProgress] = useState(0);
+  const [demoStage, setDemoStage] = useState("");
+
   const {
     isConnected,
     isAnalyzing,
-    messages,
-    progress,
-    stage,
-    physics,
-    verdict,
+    messages: liveMessages,
+    progress: liveProgress,
+    stage: liveStage,
+    physics: livePhysics,
+    verdict: liveVerdict,
     objects,
     trajectory,
     startAnalysis,
     sendUserResponse,
     reset
   } = useVeritasAnalysis();
+
+  // Kill Switch for demo mode
+  const {
+    isDemoMode,
+    runDemoScenario,
+    logoClickHandler,
+  } = useKillSwitch(
+    (msg) => setDemoMessages(prev => [...prev, msg]),
+    (phys) => setDemoPhysics(phys),
+    (verd) => setDemoVerdict(verd),
+    (prog, stg) => { setDemoProgress(prog); setDemoStage(stg); }
+  );
+
+  // Use demo or live data based on mode
+  const messages = isDemoMode ? demoMessages : liveMessages;
+  const physics = isDemoMode ? demoPhysics : livePhysics;
+  const verdict = isDemoMode ? demoVerdict : liveVerdict;
+  const progress = isDemoMode ? demoProgress : liveProgress;
+  const stage = isDemoMode ? demoStage : liveStage;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,9 +79,22 @@ export default function VeritasCommandCenter() {
       reset();
       setVideoFile(null);
       setVideoPreview(null);
+      setDemoMessages([]);
+      setDemoPhysics(null);
+      setDemoVerdict(null);
+      setDemoProgress(0);
       return;
     }
-    startAnalysis();
+
+    // If demo mode is active, run demo scenario
+    if (isDemoMode) {
+      setDemoMessages([]);
+      setDemoPhysics(null);
+      setDemoVerdict(null);
+      runDemoScenario("pendulum");
+    } else {
+      startAnalysis();
+    }
   };
 
   const handleQuestionSubmit = (e: React.FormEvent) => {
@@ -74,11 +114,17 @@ export default function VeritasCommandCenter() {
         {/* Header */}
         <header className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <div className="relative flex items-baseline">
+            <div
+              className="relative flex items-baseline cursor-pointer select-none"
+              onClick={logoClickHandler}
+              title="Click 5 times for demo mode"
+            >
               <motion.h1
                 className="text-2xl font-semibold tracking-tight"
                 style={{
-                  background: "linear-gradient(90deg, #4a4a4a 0%, #ffffff 50%, #4a4a4a 100%)",
+                  background: isDemoMode
+                    ? "linear-gradient(90deg, #ffd700 0%, #ffea00 50%, #ffd700 100%)"
+                    : "linear-gradient(90deg, #4a4a4a 0%, #ffffff 50%, #4a4a4a 100%)",
                   backgroundSize: "200% 100%",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
@@ -102,6 +148,17 @@ export default function VeritasCommandCenter() {
           </div>
 
           <div className="flex items-center gap-6 text-xs text-neutral-500">
+            {/* Demo Mode Indicator */}
+            {isDemoMode && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/30"
+              >
+                <Shield className="w-3 h-3 text-yellow-500" />
+                <span className="text-yellow-500 font-medium">DEMO MODE</span>
+              </motion.div>
+            )}
             <div className="flex items-center gap-2">
               <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-green-500" : "bg-red-500"}`} />
               <span>{isConnected ? "Backend Online" : "Connecting..."}</span>
@@ -296,15 +353,33 @@ export default function VeritasCommandCenter() {
               <div className="flex items-center gap-2 mb-4">
                 <Zap className="w-4 h-4 text-neutral-500" />
                 <h3 className="text-sm font-medium text-neutral-400">Physics Analysis</h3>
+                {physics?.checks?.gravity?.severity && (
+                  <span className={`ml-auto text-xs px-2 py-0.5 rounded ${physics.checks.gravity.severity >= 8 ? "bg-red-500/20 text-red-400" :
+                      physics.checks.gravity.severity >= 4 ? "bg-yellow-500/20 text-yellow-400" :
+                        "bg-emerald-500/20 text-emerald-400"
+                    }`}>
+                    {physics.checks.gravity.severity >= 8 ? "CRITICAL" :
+                      physics.checks.gravity.severity >= 4 ? "SUSPICIOUS" : "NORMAL"}
+                  </span>
+                )}
               </div>
 
               <div className="space-y-3">
-                {/* Gravity Check */}
+                {/* Gravity Check with Severity */}
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-neutral-500">Gravity (g)</span>
-                  <span className={`text-sm font-mono ${physics && physics.gravity > 11 ? "text-red-400" : "text-emerald-400"}`}>
-                    {physics ? `${physics.gravity.toFixed(1)} m/s²` : "—"}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {physics?.checks?.gravity?.severity !== undefined && (
+                      <span className={`text-xs font-bold ${physics.checks.gravity.severity >= 8 ? "text-red-400" :
+                          physics.checks.gravity.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                        }`}>
+                        {physics.checks.gravity.severity.toFixed(1)}/10
+                      </span>
+                    )}
+                    <span className={`text-sm font-mono ${physics && physics.gravity > 11 ? "text-red-400" : "text-emerald-400"}`}>
+                      {physics ? `${physics.gravity.toFixed(1)} m/s²` : "—"}
+                    </span>
+                  </div>
                 </div>
                 <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                   <motion.div
@@ -314,7 +389,7 @@ export default function VeritasCommandCenter() {
                   />
                 </div>
                 <div className="flex justify-between text-xs text-neutral-600">
-                  <span>Earth: 9.8</span>
+                  <span>Earth: 9.81</span>
                   <span className={physics && Math.abs(physics.deviation) > 15 ? "text-red-400" : "text-emerald-400"}>
                     {physics ? `${physics.deviation > 0 ? "+" : ""}${physics.deviation.toFixed(0)}% deviation` : "—"}
                   </span>
@@ -323,34 +398,106 @@ export default function VeritasCommandCenter() {
                 {/* Divider */}
                 <div className="border-t border-neutral-800 my-2"></div>
 
-                {/* Additional Physics Checks */}
+                {/* Additional Physics Checks with Severity Bars */}
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-neutral-500">Shadows</span>
-                    <span className={`text-xs font-mono ${physics?.checks?.shadows?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
-                      {physics?.checks?.shadows?.status === "VIOLATION" ? "✗ Multiple sources" : physics?.checks?.shadows ? "✓ Consistent" : "—"}
-                    </span>
+                  {/* Shadows */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-neutral-500">Shadows</span>
+                      <div className="flex items-center gap-2">
+                        {physics?.checks?.shadows?.severity !== undefined && (
+                          <span className={`text-xs font-bold ${physics.checks.shadows.severity >= 8 ? "text-red-400" :
+                              physics.checks.shadows.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                            }`}>{physics.checks.shadows.severity.toFixed(1)}/10</span>
+                        )}
+                        <span className={`text-xs font-mono ${physics?.checks?.shadows?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
+                          {physics?.checks?.shadows?.status === "VIOLATION" ? "✗ Anomaly" : physics?.checks?.shadows ? "✓ OK" : "—"}
+                        </span>
+                      </div>
+                    </div>
+                    {physics?.checks?.shadows?.severity !== undefined && (
+                      <div className="w-full h-1 bg-neutral-800 rounded-full overflow-hidden">
+                        <motion.div
+                          className={`h-full ${physics.checks.shadows.severity >= 8 ? "bg-red-500" : physics.checks.shadows.severity >= 4 ? "bg-yellow-500" : "bg-emerald-500"}`}
+                          animate={{ width: `${(physics.checks.shadows.severity / 10) * 100}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-neutral-500">Momentum</span>
-                    <span className={`text-xs font-mono ${physics?.checks?.momentum?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
-                      {physics?.checks?.momentum?.status === "VIOLATION" ? "✗ Conservation error" : physics?.checks?.momentum ? "✓ Conserved" : "—"}
-                    </span>
+                  {/* Momentum */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-neutral-500">Momentum</span>
+                      <div className="flex items-center gap-2">
+                        {physics?.checks?.momentum?.severity !== undefined && (
+                          <span className={`text-xs font-bold ${physics.checks.momentum.severity >= 8 ? "text-red-400" :
+                              physics.checks.momentum.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                            }`}>{physics.checks.momentum.severity.toFixed(1)}/10</span>
+                        )}
+                        <span className={`text-xs font-mono ${physics?.checks?.momentum?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
+                          {physics?.checks?.momentum?.status === "VIOLATION" ? "✗ Error" : physics?.checks?.momentum ? "✓ OK" : "—"}
+                        </span>
+                      </div>
+                    </div>
+                    {physics?.checks?.momentum?.severity !== undefined && (
+                      <div className="w-full h-1 bg-neutral-800 rounded-full overflow-hidden">
+                        <motion.div
+                          className={`h-full ${physics.checks.momentum.severity >= 8 ? "bg-red-500" : physics.checks.momentum.severity >= 4 ? "bg-yellow-500" : "bg-emerald-500"}`}
+                          animate={{ width: `${(physics.checks.momentum.severity / 10) * 100}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-neutral-500">Reflection</span>
-                    <span className={`text-xs font-mono ${physics?.checks?.reflection?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
-                      {physics?.checks?.reflection?.status === "VIOLATION" ? "✗ Mismatch" : physics?.checks?.reflection ? "✓ Valid" : "—"}
-                    </span>
+                  {/* Reflection */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-neutral-500">Reflection</span>
+                      <div className="flex items-center gap-2">
+                        {physics?.checks?.reflection?.severity !== undefined && (
+                          <span className={`text-xs font-bold ${physics.checks.reflection.severity >= 8 ? "text-red-400" :
+                              physics.checks.reflection.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                            }`}>{physics.checks.reflection.severity.toFixed(1)}/10</span>
+                        )}
+                        <span className={`text-xs font-mono ${physics?.checks?.reflection?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
+                          {physics?.checks?.reflection?.status === "VIOLATION" ? "✗ Mismatch" : physics?.checks?.reflection ? "✓ OK" : "—"}
+                        </span>
+                      </div>
+                    </div>
+                    {physics?.checks?.reflection?.severity !== undefined && (
+                      <div className="w-full h-1 bg-neutral-800 rounded-full overflow-hidden">
+                        <motion.div
+                          className={`h-full ${physics.checks.reflection.severity >= 8 ? "bg-red-500" : physics.checks.reflection.severity >= 4 ? "bg-yellow-500" : "bg-emerald-500"}`}
+                          animate={{ width: `${(physics.checks.reflection.severity / 10) * 100}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-neutral-500">Material</span>
-                    <span className={`text-xs font-mono ${physics?.checks?.material?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
-                      {physics?.checks?.material?.status === "VIOLATION" ? "✗ Inconsistent" : physics?.checks?.material ? "✓ Valid" : "—"}
-                    </span>
+                  {/* Material */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-neutral-500">Material</span>
+                      <div className="flex items-center gap-2">
+                        {physics?.checks?.material?.severity !== undefined && (
+                          <span className={`text-xs font-bold ${physics.checks.material.severity >= 8 ? "text-red-400" :
+                              physics.checks.material.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                            }`}>{physics.checks.material.severity.toFixed(1)}/10</span>
+                        )}
+                        <span className={`text-xs font-mono ${physics?.checks?.material?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
+                          {physics?.checks?.material?.status === "VIOLATION" ? "✗ Invalid" : physics?.checks?.material ? "✓ OK" : "—"}
+                        </span>
+                      </div>
+                    </div>
+                    {physics?.checks?.material?.severity !== undefined && (
+                      <div className="w-full h-1 bg-neutral-800 rounded-full overflow-hidden">
+                        <motion.div
+                          className={`h-full ${physics.checks.material.severity >= 8 ? "bg-red-500" : physics.checks.material.severity >= 4 ? "bg-yellow-500" : "bg-emerald-500"}`}
+                          animate={{ width: `${(physics.checks.material.severity / 10) * 100}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

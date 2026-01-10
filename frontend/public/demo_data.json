@@ -1,0 +1,426 @@
+{
+    "killswitch_version": "1.0.0",
+    "activation": "Click VERITAS logo 5 times OR press Ctrl+Shift+D",
+    "scenarios": {
+        "pendulum": {
+            "name": "Pendulum Physics Test",
+            "verdict": {
+                "result": "synthetic",
+                "confidence": 92.4,
+                "gravity": 14.38,
+                "violations": 3,
+                "total_checks": 5,
+                "reason": "3 physics violation(s) detected • AI-generated content suspected"
+            },
+            "physics": {
+                "gravity": 14.38,
+                "expected": 9.81,
+                "deviation": 46.6,
+                "checks": {
+                    "gravity": {
+                        "value": 14.38,
+                        "expected": 9.81,
+                        "status": "VIOLATION",
+                        "severity": 9.2,
+                        "explanation": "Objects fall 47% faster than Earth's gravity allows. Physically impossible."
+                    },
+                    "shadows": {
+                        "variance": 34,
+                        "status": "VIOLATION",
+                        "severity": 8.5,
+                        "explanation": "Multiple light source directions detected. Shadows don't align."
+                    },
+                    "momentum": {
+                        "status": "PASS",
+                        "severity": 2.1,
+                        "explanation": "No collision events detected."
+                    },
+                    "reflection": {
+                        "status": "PASS",
+                        "severity": 1.8,
+                        "explanation": "No reflective surfaces analyzed."
+                    },
+                    "material": {
+                        "status": "VIOLATION",
+                        "severity": 7.3,
+                        "explanation": "Impact physics inconsistent with material properties."
+                    }
+                }
+            },
+            "messages": [
+                {
+                    "level": "system",
+                    "message": "VERITAS ENGINE INITIALIZING"
+                },
+                {
+                    "level": "agent",
+                    "message": "Gemini Vision API connected"
+                },
+                {
+                    "level": "agent",
+                    "message": "Preprocessing video frames..."
+                },
+                {
+                    "level": "agent",
+                    "message": "Extracting key frames for analysis..."
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 1: OBJECT DETECTION"
+                },
+                {
+                    "level": "agent",
+                    "message": "Analyzing video frames with CV pipeline..."
+                },
+                {
+                    "level": "agent",
+                    "message": "Detected: 3 trackable objects (pendulum_bob, support, shadow)"
+                },
+                {
+                    "level": "agent",
+                    "message": "Motion type: OSCILLATORY PENDULUM MOTION"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 2: TRAJECTORY ANALYSIS"
+                },
+                {
+                    "level": "agent",
+                    "message": "Extracting motion vectors..."
+                },
+                {
+                    "level": "agent",
+                    "message": "Extracted 24 trajectory points"
+                },
+                {
+                    "level": "agent",
+                    "message": "Measured period: 1.64 seconds"
+                },
+                {
+                    "level": "agent",
+                    "message": "Estimated characteristic length: 1.0 meters"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 3: PHYSICS VERIFICATION"
+                },
+                {
+                    "level": "agent",
+                    "message": "Applying pendulum equation: T = 2π√(L/g)"
+                },
+                {
+                    "level": "agent",
+                    "message": "Calculated gravity: 14.38 m/s²"
+                },
+                {
+                    "level": "agent",
+                    "message": "✗ GRAVITY VIOLATION: 14.38 m/s² (Expected: 9.81) - Severity: 9.2/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✗ SHADOW ANOMALY: Multiple light sources detected (variance: 34°) - Severity: 8.5/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ MOMENTUM: Conservation verified - Severity: 2.1/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ REFLECTION: No anomalies detected - Severity: 1.8/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✗ MATERIAL VIOLATION: Impact physics inconsistent - Severity: 7.3/10"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 4: DATABASE COMPARISON"
+                },
+                {
+                    "level": "agent",
+                    "message": "Checking against 6 known fake signatures..."
+                },
+                {
+                    "level": "agent",
+                    "message": "⚠ MATCH FOUND: Similar to OpenAI Sora - Objects fall 15-20% faster than Earth gravity"
+                },
+                {
+                    "level": "system",
+                    "message": "⚠ PHYSICS CHECKS: 2/5 PASSED"
+                },
+                {
+                    "level": "system",
+                    "message": "✗ 3 VIOLATION(S) DETECTED"
+                },
+                {
+                    "level": "agent",
+                    "message": "Signature stored in fake database"
+                }
+            ],
+            "timeline": [
+                {
+                    "frame": 90,
+                    "time": "0:03",
+                    "law": "Gravity",
+                    "severity": 9.2
+                },
+                {
+                    "frame": 150,
+                    "time": "0:05",
+                    "law": "Shadow",
+                    "severity": 8.5
+                },
+                {
+                    "frame": 210,
+                    "time": "0:07",
+                    "law": "Material",
+                    "severity": 7.3
+                }
+            ]
+        },
+        "bouncing_ball": {
+            "name": "Bouncing Ball Physics Test",
+            "verdict": {
+                "result": "synthetic",
+                "confidence": 87.6,
+                "gravity": 12.4,
+                "violations": 2,
+                "total_checks": 5,
+                "reason": "2 physics violation(s) detected • AI-generated content suspected"
+            },
+            "physics": {
+                "gravity": 12.4,
+                "expected": 9.81,
+                "deviation": 26.4,
+                "checks": {
+                    "gravity": {
+                        "value": 12.4,
+                        "expected": 9.81,
+                        "status": "VIOLATION",
+                        "severity": 7.8,
+                        "explanation": "Objects fall 26% faster than Earth's gravity. Impossible on Earth."
+                    },
+                    "shadows": {
+                        "variance": 8,
+                        "status": "PASS",
+                        "severity": 2.3,
+                        "explanation": "Single consistent light source detected."
+                    },
+                    "momentum": {
+                        "status": "VIOLATION",
+                        "severity": 8.1,
+                        "explanation": "Energy not conserved. Ball bounces higher than dropped height."
+                    },
+                    "reflection": {
+                        "status": "PASS",
+                        "severity": 1.2,
+                        "explanation": "No reflective surfaces."
+                    },
+                    "material": {
+                        "status": "PASS",
+                        "severity": 2.8,
+                        "explanation": "Material behavior consistent with rubber."
+                    }
+                }
+            },
+            "messages": [
+                {
+                    "level": "system",
+                    "message": "VERITAS ENGINE INITIALIZING"
+                },
+                {
+                    "level": "agent",
+                    "message": "Gemini Vision API connected"
+                },
+                {
+                    "level": "agent",
+                    "message": "Preprocessing video frames..."
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 1: OBJECT DETECTION"
+                },
+                {
+                    "level": "agent",
+                    "message": "Detected: ball, floor, shadow"
+                },
+                {
+                    "level": "agent",
+                    "message": "Motion type: FREE FALL + BOUNCE"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 2: TRAJECTORY ANALYSIS"
+                },
+                {
+                    "level": "agent",
+                    "message": "Tracking ball trajectory..."
+                },
+                {
+                    "level": "agent",
+                    "message": "Extracted 18 trajectory points"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 3: PHYSICS VERIFICATION"
+                },
+                {
+                    "level": "agent",
+                    "message": "Applying kinematics: s = ut + ½gt²"
+                },
+                {
+                    "level": "agent",
+                    "message": "✗ GRAVITY VIOLATION: 12.4 m/s² - Severity: 7.8/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ SHADOWS: Consistent"
+                },
+                {
+                    "level": "agent",
+                    "message": "✗ MOMENTUM VIOLATION: Ball bounces 40% higher than initial drop - Severity: 8.1/10"
+                },
+                {
+                    "level": "system",
+                    "message": "⚠ PHYSICS CHECKS: 3/5 PASSED"
+                },
+                {
+                    "level": "system",
+                    "message": "✗ 2 VIOLATION(S) DETECTED"
+                }
+            ],
+            "timeline": [
+                {
+                    "frame": 45,
+                    "time": "0:01.5",
+                    "law": "Gravity",
+                    "severity": 7.8
+                },
+                {
+                    "frame": 120,
+                    "time": "0:04",
+                    "law": "Momentum",
+                    "severity": 8.1
+                }
+            ]
+        },
+        "authentic_real": {
+            "name": "Authentic Video Test",
+            "verdict": {
+                "result": "authentic",
+                "confidence": 94.2,
+                "gravity": 9.76,
+                "violations": 0,
+                "total_checks": 5,
+                "reason": "All 5 physics checks passed • Real-world physics confirmed"
+            },
+            "physics": {
+                "gravity": 9.76,
+                "expected": 9.81,
+                "deviation": -0.5,
+                "checks": {
+                    "gravity": {
+                        "value": 9.76,
+                        "expected": 9.81,
+                        "status": "PASS",
+                        "severity": 0.8,
+                        "explanation": "Gravity within 1% of Earth's 9.81 m/s²."
+                    },
+                    "shadows": {
+                        "variance": 3,
+                        "status": "PASS",
+                        "severity": 1.2,
+                        "explanation": "Single consistent light source."
+                    },
+                    "momentum": {
+                        "status": "PASS",
+                        "severity": 0.5,
+                        "explanation": "No collision events."
+                    },
+                    "reflection": {
+                        "status": "PASS",
+                        "severity": 0.9,
+                        "explanation": "No reflective surfaces."
+                    },
+                    "material": {
+                        "status": "PASS",
+                        "severity": 1.1,
+                        "explanation": "Physics behavior matches expected material."
+                    }
+                }
+            },
+            "messages": [
+                {
+                    "level": "system",
+                    "message": "VERITAS ENGINE INITIALIZING"
+                },
+                {
+                    "level": "agent",
+                    "message": "Gemini Vision API connected"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 1: OBJECT DETECTION"
+                },
+                {
+                    "level": "agent",
+                    "message": "Detected: 3 trackable objects"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 2: TRAJECTORY ANALYSIS"
+                },
+                {
+                    "level": "agent",
+                    "message": "Extracted 16 trajectory points"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 3: PHYSICS VERIFICATION"
+                },
+                {
+                    "level": "agent",
+                    "message": "Calculated gravity: 9.76 m/s²"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ GRAVITY: 9.76 m/s² (Earth: 9.81) - Severity: 0.8/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ SHADOWS: Consistent - Severity: 1.2/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ MOMENTUM: Conserved - Severity: 0.5/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ REFLECTION: Valid - Severity: 0.9/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ MATERIAL: Consistent - Severity: 1.1/10"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 4: DATABASE COMPARISON"
+                },
+                {
+                    "level": "agent",
+                    "message": "No matching fake patterns found"
+                },
+                {
+                    "level": "system",
+                    "message": "PHYSICS CHECKS: 5/5 PASSED"
+                },
+                {
+                    "level": "system",
+                    "message": "✓ VIDEO AUTHENTICATED"
+                }
+            ],
+            "timeline": []
+        }
+    },
+    "default_scenario": "pendulum"
+}
