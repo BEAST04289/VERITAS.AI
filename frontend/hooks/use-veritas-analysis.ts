@@ -24,8 +24,8 @@ interface UseVeritasAnalysisReturn {
     messages: Array<{ level: string; message: string }>;
     progress: number;
     stage: string;
-    physics: { gravity: number; expected: number; deviation: number } | null;
-    verdict: { result: string; confidence: number; gravity: number; reason: string } | null;
+    physics: { gravity: number; expected: number; deviation: number; checks?: any } | null;
+    verdict: { result: string; confidence: number; gravity: number; reason: string; violations?: number; total_checks?: number } | null;
     objects: Array<{ id: number; type: string; confidence: number }>;
     trajectory: Array<{ t: number; x: number; y: number }>;
     startAnalysis: (videoData?: string) => void;
@@ -40,8 +40,8 @@ export function useVeritasAnalysis(): UseVeritasAnalysisReturn {
     const [messages, setMessages] = useState<Array<{ level: string; message: string }>>([]);
     const [progress, setProgress] = useState(0);
     const [stage, setStage] = useState("");
-    const [physics, setPhysics] = useState<{ gravity: number; expected: number; deviation: number } | null>(null);
-    const [verdict, setVerdict] = useState<{ result: string; confidence: number; gravity: number; reason: string } | null>(null);
+    const [physics, setPhysics] = useState<{ gravity: number; expected: number; deviation: number; checks?: any } | null>(null);
+    const [verdict, setVerdict] = useState<{ result: string; confidence: number; gravity: number; reason: string; violations?: number; total_checks?: number } | null>(null);
     const [objects, setObjects] = useState<Array<{ id: number; type: string; confidence: number }>>([]);
     const [trajectory, setTrajectory] = useState<Array<{ t: number; x: number; y: number }>>([]);
 
@@ -85,7 +85,8 @@ export function useVeritasAnalysis(): UseVeritasAnalysisReturn {
                     setPhysics({
                         gravity: data.gravity || 0,
                         expected: data.expected || 9.8,
-                        deviation: data.deviation || 0
+                        deviation: data.deviation || 0,
+                        checks: (data as any).checks
                     });
                     break;
 
@@ -94,7 +95,9 @@ export function useVeritasAnalysis(): UseVeritasAnalysisReturn {
                         result: data.result || "",
                         confidence: data.confidence || 0,
                         gravity: data.gravity || 0,
-                        reason: data.reason || ""
+                        reason: data.reason || "",
+                        violations: (data as any).violations || 0,
+                        total_checks: (data as any).total_checks || 5
                     });
                     setIsAnalyzing(false);
                     break;

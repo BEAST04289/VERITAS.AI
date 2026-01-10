@@ -221,8 +221,8 @@ export default function VeritasCommandCenter() {
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: "spring", stiffness: 200, damping: 15 }}
                     className={`w-24 h-24 rounded-full flex items-center justify-center mb-6 ${verdict.result === "synthetic"
-                        ? "bg-red-500/10 border-2 border-red-500/30"
-                        : "bg-green-500/10 border-2 border-green-500/30"
+                      ? "bg-red-500/10 border-2 border-red-500/30"
+                      : "bg-green-500/10 border-2 border-green-500/30"
                       }`}
                   >
                     {verdict.result === "synthetic"
@@ -250,17 +250,23 @@ export default function VeritasCommandCenter() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.7 }}
-                    className="flex gap-8"
+                    className="flex gap-6"
                   >
                     <div className="text-center">
                       <p className="text-2xl font-bold text-white">{verdict.confidence}%</p>
                       <p className="text-xs text-neutral-500">Confidence</p>
                     </div>
                     <div className="text-center">
-                      <p className={`text-2xl font-bold ${physics && physics.gravity > 11 ? "text-red-400" : "text-white"}`}>
-                        {physics?.gravity || verdict.gravity} m/s²
+                      <p className={`text-2xl font-bold ${physics && physics.gravity > 11 ? "text-red-400" : "text-emerald-400"}`}>
+                        {(physics?.gravity || verdict.gravity).toFixed(1)} m/s²
                       </p>
-                      <p className="text-xs text-neutral-500">Detected G</p>
+                      <p className="text-xs text-neutral-500">Gravity</p>
+                    </div>
+                    <div className="text-center">
+                      <p className={`text-2xl font-bold ${verdict.result === "synthetic" ? "text-red-400" : "text-emerald-400"}`}>
+                        {verdict.violations || 0}
+                      </p>
+                      <p className="text-xs text-neutral-500">Violations</p>
                     </div>
                   </motion.div>
                   <button
@@ -293,24 +299,59 @@ export default function VeritasCommandCenter() {
               </div>
 
               <div className="space-y-3">
+                {/* Gravity Check */}
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-neutral-500">Gravity (g)</span>
-                  <span className={`text-sm font-mono ${physics && physics.gravity > 11 ? "text-red-400" : "text-neutral-400"}`}>
+                  <span className={`text-sm font-mono ${physics && physics.gravity > 11 ? "text-red-400" : "text-emerald-400"}`}>
                     {physics ? `${physics.gravity.toFixed(1)} m/s²` : "—"}
                   </span>
                 </div>
                 <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
                   <motion.div
-                    className={`h-full ${physics && physics.gravity > 11 ? "bg-gradient-to-r from-yellow-500 to-red-500" : "bg-blue-500"}`}
+                    className={`h-full ${physics && physics.gravity > 11 ? "bg-gradient-to-r from-yellow-500 to-red-500" : "bg-emerald-500"}`}
                     animate={{ width: physics ? `${Math.min((physics.gravity / 20) * 100, 100)}%` : "0%" }}
                     transition={{ duration: 0.5, ease: "easeOut" }}
                   />
                 </div>
                 <div className="flex justify-between text-xs text-neutral-600">
                   <span>Earth: 9.8</span>
-                  <span className={physics && physics.deviation > 15 ? "text-red-400" : ""}>
+                  <span className={physics && Math.abs(physics.deviation) > 15 ? "text-red-400" : "text-emerald-400"}>
                     {physics ? `${physics.deviation > 0 ? "+" : ""}${physics.deviation.toFixed(0)}% deviation` : "—"}
                   </span>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-neutral-800 my-2"></div>
+
+                {/* Additional Physics Checks */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-neutral-500">Shadows</span>
+                    <span className={`text-xs font-mono ${physics?.checks?.shadows?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
+                      {physics?.checks?.shadows?.status === "VIOLATION" ? "✗ Multiple sources" : physics?.checks?.shadows ? "✓ Consistent" : "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-neutral-500">Momentum</span>
+                    <span className={`text-xs font-mono ${physics?.checks?.momentum?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
+                      {physics?.checks?.momentum?.status === "VIOLATION" ? "✗ Conservation error" : physics?.checks?.momentum ? "✓ Conserved" : "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-neutral-500">Reflection</span>
+                    <span className={`text-xs font-mono ${physics?.checks?.reflection?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
+                      {physics?.checks?.reflection?.status === "VIOLATION" ? "✗ Mismatch" : physics?.checks?.reflection ? "✓ Valid" : "—"}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-neutral-500">Material</span>
+                    <span className={`text-xs font-mono ${physics?.checks?.material?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
+                      {physics?.checks?.material?.status === "VIOLATION" ? "✗ Inconsistent" : physics?.checks?.material ? "✓ Valid" : "—"}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
