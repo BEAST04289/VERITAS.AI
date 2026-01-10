@@ -30,6 +30,41 @@ AI video generators (Sora, Kling, Runway) create hyper-realistic fake videos. By
 
 ---
 
+## ✨ Features
+
+### 🛡️ Kill Switch (Demo Insurance)
+- **5-click logo** or `Ctrl+Shift+D` to activate demo mode
+- Pre-calculated perfect responses when API fails
+- 100% reliable demo - never fail on stage
+
+### 📊 Physics Scorecard
+- **Severity scores (0-10)** for each physics law
+- Color-coded bars: 🟢 0-3 | 🟡 4-7 | 🔴 8-10
+- **CRITICAL/SUSPICIOUS/NORMAL** labels
+
+### 🕸️ Physics Radar Chart
+- Spider visualization of all 5 physics checks
+- Instant overview of violation severity
+- Dynamic color based on average severity
+
+### ⏱️ Timeline Scrubber
+- Interactive timeline with violation markers
+- Click to see frame-by-frame details
+- Color-coded by severity
+
+### 🔬 Split-Screen Comparison View
+- **AI Video vs Physics-Correct Simulation**
+- Side-by-side synchronized playback
+- Shows what SHOULD happen vs what AI generated
+- **The "Holy Sh*t" demo moment**
+
+### 📄 PDF Forensic Report
+- Professional legal-grade documentation
+- Case ID, timestamp, violations table
+- Download with one click
+
+---
+
 ## 🔬 How It Works
 
 ```
@@ -37,49 +72,48 @@ Video Upload → Object Tracking → Physics Extraction → Law Verification →
      ↓              ↓                  ↓                  ↓              ↓
   Gemini       Trajectory         g = 9.8?          Gravity OK?      REAL/FAKE
   Vision        Points           p = mv?           Momentum OK?
-                                Shadow angles?     Shadows OK?
+                               Shadow angles?     Shadows OK?
 ```
 
-### The 3 Laws of VERITAS
+### The 6 Laws of VERITAS
 
 | Law | What AI Gets Wrong | The Math | Detection |
 |-----|-------------------|----------|-----------|
-| **🍎 Fall Detector** | Objects float, fall too slow | `y = v₀t - ½gt²` | If `g ≠ 9.8` → **FAKE** |
-| **💥 Crash Detector** | Cars stop instantly, no crumple | `p₁ + p₂ = p₁' + p₂'` | Momentum violated → **FAKE** |
-| **☀️ Light Detector** | Shadows point different ways | Line convergence | Multiple suns → **FAKE** |
+| **🍎 Gravity** | Objects float, fall too slow | `y = v₀t - ½gt²` | If `g ≠ 9.81` → **FAKE** |
+| **💥 Momentum** | Energy not conserved | `p₁ + p₂ = p₁' + p₂'` | Momentum violated → **FAKE** |
+| **☀️ Shadows** | Multiple light sources | Line convergence | Angles don't align → **FAKE** |
+| **🪞 Reflection** | Mirrors show wrong angles | Reflection law | Mismatch → **FAKE** |
+| **🧱 Material** | Wrong bounce/deformation | Elasticity equations | Impossible physics → **FAKE** |
+| **🔄 Pendulum** | Wrong swing period | `T = 2π√(L/g)` | Period deviation → **FAKE** |
 
 ---
 
 ## 🚀 Demo Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    VERITAS COMMAND CENTER                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌─────────────────────────┐    ┌──────────────────────────┐   │
-│  │                         │    │  Physics Analysis        │   │
-│  │    [VIDEO PREVIEW]      │    │                          │   │
-│  │                         │    │  Gravity: 9.87 m/s²  ✓   │   │
-│  │  ╔═══════════════════╗  │    │  Shadows: Consistent ✓   │   │
-│  │  ║ Trajectory Overlay ║  │    │  Momentum: Valid    ✓   │   │
-│  │  ╚═══════════════════╝  │    │                          │   │
-│  │                         │    │  ┌────────────────────┐  │   │
-│  └─────────────────────────┘    │  │ g ████████████░░░░ │  │   │
-│                                 │  └────────────────────┘  │   │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │  Agent Console                                          │   │
-│  │  > Detecting objects... ✓                               │   │
-│  │  > Extracting trajectory... ✓                           │   │
-│  │  > Calculating gravity: 9.87 m/s²                       │   │
-│  │  > ✓ PHYSICS VERIFIED                                   │   │
-│  └─────────────────────────────────────────────────────────┘   │
-│                                                                 │
-│              ╔═══════════════════════════════╗                  │
-│              ║         AUTHENTIC             ║                  │
-│              ║    94.5% Confidence           ║                  │
-│              ╚═══════════════════════════════╝                  │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                    VERITAS COMMAND CENTER                           │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────────┐    ┌────────────────────────────────────┐ │
+│  │   [VIDEO PREVIEW]   │    │  Physics Analysis         CRITICAL │ │
+│  │                     │    │                                    │ │
+│  │   ⚠ SYNTHETIC       │    │  Gravity: 14.4 m/s²  9.2/10  ✗    │ │
+│  │   92% Confidence    │    │  ████████████████░░░░░░            │ │
+│  │                     │    │                                    │ │
+│  └─────────────────────┘    │  Shadows: 8.5/10  ✗  Multiple src │ │
+│                             │  Momentum: 2.1/10 ✓  Conserved    │ │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │  🔬 Physics Reconstruction                                    │ │
+│  │  ┌─────────────┐    ┌─────────────┐                          │ │
+│  │  │ AI GENERATED│    │ PHYSICS OK  │                          │ │
+│  │  │  14.4 m/s²  │    │  9.81 m/s²  │                          │ │
+│  │  └─────────────┘    └─────────────┘                          │ │
+│  │  ⚠ Gravity: 14.38 m/s² (47% faster) → Should be 9.81 m/s²  │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│                                                                     │
+│  [Download Report]  [Analyze Another]                              │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -108,15 +142,21 @@ This **Human-in-the-Loop** approach is what separates VERITAS from black-box det
 VERITAS.AI
 ├── frontend/                 # Next.js 15 + Framer Motion
 │   ├── app/page.tsx         # Command Center Dashboard
-│   ├── components/          # UI Components
-│   │   ├── scanning-overlay # Trajectory visualization
-│   │   ├── water-ripple     # Agentic question effect
-│   │   └── verdict-display  # Result animation
-│   └── hooks/               # WebSocket connection
+│   ├── components/ui/       # UI Components
+│   │   ├── scanning-overlay    # Trajectory visualization
+│   │   ├── water-ripple        # Agentic question effect
+│   │   ├── timeline-scrubber   # Violation timeline
+│   │   ├── physics-radar-chart # Severity spider chart
+│   │   └── comparison-view     # Split-screen comparison
+│   ├── hooks/
+│   │   ├── use-veritas-analysis # WebSocket connection
+│   │   └── use-kill-switch      # Demo mode insurance
+│   └── lib/
+│       └── pdf-generator       # Forensic report generation
 │
 ├── backend/                  # FastAPI + Python
 │   ├── main.py              # WebSocket API
-│   ├── physics_engine.py    # The 3 Laws
+│   ├── physics_engine.py    # The 6 Laws
 │   ├── knowledge_base.py    # ChromaDB (fake signatures)
 │   └── agentic_bot.py       # Interrogator logic
 │
@@ -134,7 +174,9 @@ VERITAS.AI
 | **Backend** | FastAPI + WebSocket | Real-time streaming |
 | **Physics** | NumPy + SciPy | Curve fitting for `g` |
 | **Knowledge** | ChromaDB | Store fake signatures |
-| **UI** | Aceternity + Tailwind | Cyber-forensics vibe |
+| **Charts** | Recharts | Radar chart visualization |
+| **PDF** | jsPDF + AutoTable | Forensic reports |
+| **UI** | Tailwind + Lucide | Cyber-forensics vibe |
 
 ---
 
@@ -174,6 +216,13 @@ Add your Gemini API key to `backend/.env`:
 GEMINI_API_KEY=your_key_here
 ```
 
+### 🛡️ Demo Mode (Kill Switch)
+If API fails during demo:
+1. Click VERITAS logo **5 times fast** OR press `Ctrl+Shift+D`
+2. Logo turns gold, "DEMO MODE" badge appears
+3. Pre-calculated perfect analysis runs
+4. **100% reliable demo**
+
 ---
 
 ## 📈 The Journey
@@ -188,38 +237,26 @@ This project started as **Q.E.D.** - a general physics education tool. We pivote
 
 | Challenge | Insight |
 |-----------|---------|
-| **Rate Limits** | Use demo mode as fallback, not failure |
+| **Rate Limits** | Kill Switch = demo insurance |
 | **Kitchen Sink vs Focus** | 3 God-Tier features > 10 mediocre ones |
 | **SHIELD overlap** | SHIELD = Intent detection. VERITAS = Reality verification. |
 | **Agentic AI** | The best AI admits uncertainty and asks for help |
-
-### The "Aha!" Moment
-
-*"SHIELD protects from malice. VERITAS protects from unreality."*
-
-SHIELD is a **bouncer** - checks if you're on a banned list.
-VERITAS is a **doctor** - checks if you're actually human.
 
 ---
 
 ## 🔮 Future Roadmap
 
 ### Phase 2: More Physics Laws
-- [ ] Reflection consistency (water/mirrors)
-- [ ] Projectile arc verification
-- [ ] Angular momentum conservation
+- [ ] Water physics (ripples, splashes)
+- [ ] Fire/smoke dynamics
+- [ ] Cloth/fabric simulation
 
 ### Phase 3: Image Detection
 - [ ] GAN fingerprint analysis
 - [ ] Hand/finger counting
 - [ ] Facial symmetry checks
 
-### Phase 4: Internet Grounding
-- [ ] Reverse image search
-- [ ] Fact-checking integration
-- [ ] Source verification
-
-### Phase 5: Enterprise
+### Phase 4: Enterprise
 - [ ] API for third-party integration
 - [ ] Browser extension
 - [ ] Mobile app
@@ -230,10 +267,11 @@ VERITAS is a **doctor** - checks if you're actually human.
 
 For the **Google DeepMind Gemini 3 Hackathon**, we prioritized:
 
-1. **Depth over Width** - Perfect 3 laws, not mediocre 10
+1. **Depth over Width** - Perfect 6 laws, not mediocre 10
 2. **Agentic Design** - Human-in-the-loop questioning
 3. **Visual Impact** - Command Center UI that looks production-ready
-4. **Scientific Rigor** - Show the actual physics equations
+4. **Demo Insurance** - Kill Switch for reliable presentations
+5. **Scientific Rigor** - Show the actual physics equations
 
 ---
 

@@ -9,6 +9,7 @@ import { ScanningOverlay } from "@/components/ui/scanning-overlay";
 import { WaterRipple } from "@/components/ui/water-ripple";
 import { TimelineScrubber } from "@/components/ui/timeline-scrubber";
 import { PhysicsRadarChart } from "@/components/ui/physics-radar-chart";
+import { ComparisonView } from "@/components/ui/comparison-view";
 import { generateForensicReport, generateCaseId, formatTimestamp } from "@/lib/pdf-generator";
 
 export default function VeritasCommandCenter() {
@@ -394,6 +395,21 @@ export default function VeritasCommandCenter() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Comparison View - Shows when verdict is synthetic in demo mode */}
+            {isDemoMode && verdict?.result === "synthetic" && videoPreview && (
+              <ComparisonView
+                realVideoUrl={videoPreview}
+                simulationVideoUrl="/simulations/pendulum_correct.mp4"
+                violationDetails={{
+                  law: "Gravity",
+                  realValue: `${physics?.gravity?.toFixed(2) || "14.38"} m/s² (${Math.abs(physics?.deviation || 47).toFixed(0)}% ${physics?.deviation > 0 ? "faster" : "slower"})`,
+                  correctValue: "9.81 m/s² (Earth gravity)",
+                  explanation: "The AI-generated motion violates Newton's laws. Objects on Earth MUST accelerate at 9.81 m/s². This is physically impossible."
+                }}
+                isVisible={true}
+              />
+            )}
 
             {/* Grid pattern */}
             <div className="absolute inset-0 opacity-[0.02] pointer-events-none"

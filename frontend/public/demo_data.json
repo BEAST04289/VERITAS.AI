@@ -176,7 +176,17 @@
                     "law": "Material",
                     "severity": 7.3
                 }
-            ]
+            ],
+            "comparison": {
+                "enabled": true,
+                "simulationVideoUrl": "/simulations/pendulum_correct.mp4",
+                "violationDetails": {
+                    "law": "Gravity",
+                    "realValue": "14.38 m/s² (47% faster)",
+                    "correctValue": "9.81 m/s² (Earth gravity)",
+                    "explanation": "The AI-generated pendulum swings 47% faster than physically possible on Earth. No object can accelerate faster than Earth's gravity without external force."
+                }
+            }
         },
         "bouncing_ball": {
             "name": "Bouncing Ball Physics Test",
