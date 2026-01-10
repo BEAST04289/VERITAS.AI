@@ -46,6 +46,8 @@ export default function VeritasCommandCenter() {
     isDemoMode,
     runDemoScenario,
     logoClickHandler,
+    currentScenario,
+    getSimulationUrl,
   } = useKillSwitch(
     (msg) => setDemoMessages(prev => [...prev, msg]),
     (phys) => setDemoPhysics(phys),
@@ -397,15 +399,15 @@ export default function VeritasCommandCenter() {
             </AnimatePresence>
 
             {/* Comparison View - Shows when verdict is synthetic in demo mode */}
-            {isDemoMode && verdict?.result === "synthetic" && videoPreview && (
+            {isDemoMode && verdict?.result === "synthetic" && videoPreview && currentScenario?.comparison?.enabled && (
               <ComparisonView
                 realVideoUrl={videoPreview}
-                simulationVideoUrl="/simulations/pendulum_correct.mp4"
-                violationDetails={{
+                simulationVideoUrl={getSimulationUrl(currentScenario.motionType)}
+                violationDetails={currentScenario.comparison.violationDetails || {
                   law: "Gravity",
-                  realValue: `${physics?.gravity?.toFixed(2) || "14.38"} m/s² (${Math.abs(physics?.deviation || 47).toFixed(0)}% ${physics?.deviation > 0 ? "faster" : "slower"})`,
+                  realValue: `${physics?.gravity?.toFixed(2) || "14.38"} m/s²`,
                   correctValue: "9.81 m/s² (Earth gravity)",
-                  explanation: "The AI-generated motion violates Newton's laws. Objects on Earth MUST accelerate at 9.81 m/s². This is physically impossible."
+                  explanation: "The AI-generated motion violates Newton's laws."
                 }}
                 isVisible={true}
               />

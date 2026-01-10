@@ -1,9 +1,17 @@
 {
-    "killswitch_version": "1.0.0",
+    "killswitch_version": "2.0.0",
     "activation": "Click VERITAS logo 5 times OR press Ctrl+Shift+D",
+    "simulation_mapping": {
+        "pendulum": "/simulations/pendulum_correct.mp4",
+        "free_fall": "/simulations/gravity_correct.mp4",
+        "bouncing": "/simulations/bouncing_correct.mp4",
+        "projectile": "/simulations/projectile_correct.mp4"
+    },
     "scenarios": {
         "pendulum": {
             "name": "Pendulum Physics Test",
+            "motionType": "pendulum",
+            "detectedMotion": "OSCILLATORY PENDULUM MOTION",
             "verdict": {
                 "result": "synthetic",
                 "confidence": 92.4,
@@ -22,7 +30,7 @@
                         "expected": 9.81,
                         "status": "VIOLATION",
                         "severity": 9.2,
-                        "explanation": "Objects fall 47% faster than Earth's gravity allows. Physically impossible."
+                        "explanation": "Pendulum swings 47% faster than Earth's gravity allows. Period T = 2π√(L/g) violated."
                     },
                     "shadows": {
                         "variance": 34,
@@ -33,7 +41,7 @@
                     "momentum": {
                         "status": "PASS",
                         "severity": 2.1,
-                        "explanation": "No collision events detected."
+                        "explanation": "Angular momentum appears conserved."
                     },
                     "reflection": {
                         "status": "PASS",
@@ -43,8 +51,18 @@
                     "material": {
                         "status": "VIOLATION",
                         "severity": 7.3,
-                        "explanation": "Impact physics inconsistent with material properties."
+                        "explanation": "Pendulum bob material inconsistent with motion physics."
                     }
+                }
+            },
+            "comparison": {
+                "enabled": true,
+                "simulationType": "pendulum",
+                "violationDetails": {
+                    "law": "Pendulum Period (T = 2π√(L/g))",
+                    "realValue": "14.38 m/s² (47% faster swing)",
+                    "correctValue": "9.81 m/s² (Earth gravity)",
+                    "explanation": "The AI-generated pendulum swings 47% faster than physically possible. No object on Earth can violate Newton's laws of motion."
                 }
             },
             "messages": [
@@ -146,6 +164,18 @@
                 },
                 {
                     "level": "system",
+                    "message": "PHASE 5: GENERATING PHYSICS RECONSTRUCTION"
+                },
+                {
+                    "level": "agent",
+                    "message": "🔬 Rendering correct pendulum motion at g=9.81 m/s²..."
+                },
+                {
+                    "level": "agent",
+                    "message": "📊 Split-screen comparison ready"
+                },
+                {
+                    "level": "system",
                     "message": "⚠ PHYSICS CHECKS: 2/5 PASSED"
                 },
                 {
@@ -176,20 +206,12 @@
                     "law": "Material",
                     "severity": 7.3
                 }
-            ],
-            "comparison": {
-                "enabled": true,
-                "simulationVideoUrl": "/simulations/pendulum_correct.mp4",
-                "violationDetails": {
-                    "law": "Gravity",
-                    "realValue": "14.38 m/s² (47% faster)",
-                    "correctValue": "9.81 m/s² (Earth gravity)",
-                    "explanation": "The AI-generated pendulum swings 47% faster than physically possible on Earth. No object can accelerate faster than Earth's gravity without external force."
-                }
-            }
+            ]
         },
         "bouncing_ball": {
             "name": "Bouncing Ball Physics Test",
+            "motionType": "bouncing",
+            "detectedMotion": "FREE FALL + BOUNCE",
             "verdict": {
                 "result": "synthetic",
                 "confidence": 87.6,
@@ -231,6 +253,16 @@
                         "severity": 2.8,
                         "explanation": "Material behavior consistent with rubber."
                     }
+                }
+            },
+            "comparison": {
+                "enabled": true,
+                "simulationType": "bouncing",
+                "violationDetails": {
+                    "law": "Energy Conservation (KE + PE = Constant)",
+                    "realValue": "Ball bounces 40% higher than dropped",
+                    "correctValue": "Ball bounces lower each time (energy loss)",
+                    "explanation": "In reality, bouncing balls ALWAYS lose energy. They never bounce higher than dropped. This video violates thermodynamics."
                 }
             },
             "messages": [
@@ -292,6 +324,18 @@
                 },
                 {
                     "level": "system",
+                    "message": "PHASE 5: GENERATING PHYSICS RECONSTRUCTION"
+                },
+                {
+                    "level": "agent",
+                    "message": "🔬 Rendering correct bouncing motion with energy loss..."
+                },
+                {
+                    "level": "agent",
+                    "message": "📊 Split-screen comparison ready"
+                },
+                {
+                    "level": "system",
                     "message": "⚠ PHYSICS CHECKS: 3/5 PASSED"
                 },
                 {
@@ -314,8 +358,160 @@
                 }
             ]
         },
+        "free_fall": {
+            "name": "Free Fall / Gravity Test",
+            "motionType": "free_fall",
+            "detectedMotion": "FREE FALL MOTION",
+            "verdict": {
+                "result": "synthetic",
+                "confidence": 89.3,
+                "gravity": 15.2,
+                "violations": 2,
+                "total_checks": 5,
+                "reason": "2 physics violation(s) detected • AI-generated content suspected"
+            },
+            "physics": {
+                "gravity": 15.2,
+                "expected": 9.81,
+                "deviation": 55.0,
+                "checks": {
+                    "gravity": {
+                        "value": 15.2,
+                        "expected": 9.81,
+                        "status": "VIOLATION",
+                        "severity": 9.5,
+                        "explanation": "Object falls 55% faster than Earth's gravity. Physically impossible."
+                    },
+                    "shadows": {
+                        "variance": 12,
+                        "status": "PASS",
+                        "severity": 3.2,
+                        "explanation": "Single light source with minor variance."
+                    },
+                    "momentum": {
+                        "status": "PASS",
+                        "severity": 1.5,
+                        "explanation": "No collision events detected."
+                    },
+                    "reflection": {
+                        "status": "PASS",
+                        "severity": 1.0,
+                        "explanation": "No reflective surfaces."
+                    },
+                    "material": {
+                        "status": "VIOLATION",
+                        "severity": 6.8,
+                        "explanation": "Air resistance inconsistent with object shape."
+                    }
+                }
+            },
+            "comparison": {
+                "enabled": true,
+                "simulationType": "free_fall",
+                "violationDetails": {
+                    "law": "Gravity (s = ½gt²)",
+                    "realValue": "15.2 m/s² (55% faster)",
+                    "correctValue": "9.81 m/s² (Earth gravity)",
+                    "explanation": "The AI-generated video shows objects falling 55% faster than possible on Earth. Galileo proved this 400 years ago."
+                }
+            },
+            "messages": [
+                {
+                    "level": "system",
+                    "message": "VERITAS ENGINE INITIALIZING"
+                },
+                {
+                    "level": "agent",
+                    "message": "Gemini Vision API connected"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 1: OBJECT DETECTION"
+                },
+                {
+                    "level": "agent",
+                    "message": "Detected: falling_object, shadow"
+                },
+                {
+                    "level": "agent",
+                    "message": "Motion type: FREE FALL MOTION"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 2: TRAJECTORY ANALYSIS"
+                },
+                {
+                    "level": "agent",
+                    "message": "Tracking vertical motion..."
+                },
+                {
+                    "level": "agent",
+                    "message": "Extracted 12 trajectory points"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 3: PHYSICS VERIFICATION"
+                },
+                {
+                    "level": "agent",
+                    "message": "Applying kinematics: s = ½gt²"
+                },
+                {
+                    "level": "agent",
+                    "message": "✗ GRAVITY VIOLATION: 15.2 m/s² - Severity: 9.5/10"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ SHADOWS: Consistent"
+                },
+                {
+                    "level": "agent",
+                    "message": "✓ MOMENTUM: N/A (no collision)"
+                },
+                {
+                    "level": "agent",
+                    "message": "✗ MATERIAL: Air resistance mismatch - Severity: 6.8/10"
+                },
+                {
+                    "level": "system",
+                    "message": "PHASE 5: GENERATING PHYSICS RECONSTRUCTION"
+                },
+                {
+                    "level": "agent",
+                    "message": "🔬 Rendering correct free fall at g=9.81 m/s²..."
+                },
+                {
+                    "level": "agent",
+                    "message": "📊 Split-screen comparison ready"
+                },
+                {
+                    "level": "system",
+                    "message": "⚠ PHYSICS CHECKS: 3/5 PASSED"
+                },
+                {
+                    "level": "system",
+                    "message": "✗ 2 VIOLATION(S) DETECTED"
+                }
+            ],
+            "timeline": [
+                {
+                    "frame": 30,
+                    "time": "0:01",
+                    "law": "Gravity",
+                    "severity": 9.5
+                },
+                {
+                    "frame": 75,
+                    "time": "0:02.5",
+                    "law": "Material",
+                    "severity": 6.8
+                }
+            ]
+        },
         "authentic_real": {
             "name": "Authentic Video Test",
+            "motionType": "none",
+            "detectedMotion": "GENERAL MOTION",
             "verdict": {
                 "result": "authentic",
                 "confidence": 94.2,
@@ -358,6 +554,9 @@
                         "explanation": "Physics behavior matches expected material."
                     }
                 }
+            },
+            "comparison": {
+                "enabled": false
             },
             "messages": [
                 {

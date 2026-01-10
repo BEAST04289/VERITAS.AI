@@ -2,8 +2,21 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+interface ComparisonData {
+    enabled: boolean;
+    simulationType?: string;
+    violationDetails?: {
+        law: string;
+        realValue: string;
+        correctValue: string;
+        explanation: string;
+    };
+}
+
 interface DemoScenario {
     name: string;
+    motionType: string;
+    detectedMotion: string;
     verdict: {
         result: string;
         confidence: number;
@@ -18,6 +31,7 @@ interface DemoScenario {
         deviation: number;
         checks: Record<string, any>;
     };
+    comparison: ComparisonData;
     messages: Array<{ level: string; message: string }>;
     timeline: Array<{ frame: number; time: string; law: string; severity: number }>;
 }
@@ -25,6 +39,7 @@ interface DemoScenario {
 interface DemoData {
     scenarios: Record<string, DemoScenario>;
     default_scenario: string;
+    simulation_mapping: Record<string, string>;
 }
 
 interface UseKillSwitchReturn {
@@ -34,6 +49,8 @@ interface UseKillSwitchReturn {
     runDemoScenario: (scenario?: string) => Promise<void>;
     currentScenario: DemoScenario | null;
     logoClickHandler: () => void;
+    getSimulationUrl: (motionType: string) => string;
+    simulationMapping: Record<string, string>;
 }
 
 export function useKillSwitch(
@@ -54,7 +71,7 @@ export function useKillSwitch(
             .then((res) => res.json())
             .then((data) => {
                 setDemoData(data);
-                console.log("🎭 Kill Switch: Demo data loaded");
+                console.log("🎭 Kill Switch: Demo data loaded (v2.0)");
             })
             .catch((err) => console.error("Failed to load demo data:", err));
     }, []);
@@ -111,6 +128,14 @@ export function useKillSwitch(
         document.body.style.boxShadow = "none";
     }, []);
 
+    // Get simulation URL based on motion type
+    const getSimulationUrl = useCallback((motionType: string): string => {
+        if (!demoData?.simulation_mapping) {
+            return "/simulations/pendulum_correct.mp4"; // Default fallback
+        }
+        return demoData.simulation_mapping[motionType] || "/simulations/pendulum_correct.mp4";
+    }, [demoData]);
+
     const runDemoScenario = useCallback(
         async (scenarioKey?: string) => {
             if (!demoData) {
@@ -128,6 +153,7 @@ export function useKillSwitch(
 
             setCurrentScenario(scenario);
             console.log(`🎬 Running demo scenario: ${scenario.name}`);
+            console.log(`📽️ Motion type: ${scenario.motionType} → Simulation: ${getSimulationUrl(scenario.motionType)}`);
 
             // Simulate message stream with delays
             for (let i = 0; i < scenario.messages.length; i++) {
@@ -140,6 +166,7 @@ export function useKillSwitch(
                 else if (msg.message.includes("PHASE 2")) stage = "trajectory";
                 else if (msg.message.includes("PHASE 3")) stage = "physics";
                 else if (msg.message.includes("PHASE 4")) stage = "learning";
+                else if (msg.message.includes("PHASE 5")) stage = "reconstruction";
                 else if (msg.message.includes("AUTHENTICATED") || msg.message.includes("DETECTED")) stage = "verdict";
 
                 onProgress(progress, stage);
@@ -159,7 +186,7 @@ export function useKillSwitch(
             onProgress(100, "verdict");
             onVerdict(scenario.verdict);
         },
-        [demoData, onMessage, onPhysicsUpdate, onVerdict, onProgress]
+        [demoData, onMessage, onPhysicsUpdate, onVerdict, onProgress, getSimulationUrl]
     );
 
     return {
@@ -169,5 +196,7 @@ export function useKillSwitch(
         runDemoScenario,
         currentScenario,
         logoClickHandler,
+        getSimulationUrl,
+        simulationMapping: demoData?.simulation_mapping || {},
     };
 }
