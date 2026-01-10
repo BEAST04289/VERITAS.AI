@@ -2,11 +2,14 @@
 
 import React, { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Zap, MessageSquare, AlertTriangle, CheckCircle, Loader2, Video, Shield } from "lucide-react";
+import { Upload, Zap, MessageSquare, AlertTriangle, CheckCircle, Loader2, Video, Shield, Download } from "lucide-react";
 import { useVeritasAnalysis } from "@/hooks/use-veritas-analysis";
 import { useKillSwitch } from "@/hooks/use-kill-switch";
 import { ScanningOverlay } from "@/components/ui/scanning-overlay";
 import { WaterRipple } from "@/components/ui/water-ripple";
+import { TimelineScrubber } from "@/components/ui/timeline-scrubber";
+import { PhysicsRadarChart } from "@/components/ui/physics-radar-chart";
+import { generateForensicReport, generateCaseId, formatTimestamp } from "@/lib/pdf-generator";
 
 export default function VeritasCommandCenter() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -55,6 +58,53 @@ export default function VeritasCommandCenter() {
   const verdict = isDemoMode ? demoVerdict : liveVerdict;
   const progress = isDemoMode ? demoProgress : liveProgress;
   const stage = isDemoMode ? demoStage : liveStage;
+
+  // Timeline violations from demo data or generate from physics
+  const timelineViolations = physics?.checks ? [
+    ...(physics.checks.gravity?.status === "VIOLATION" ? [{
+      frame: 90, time: "0:03", law: "Gravity",
+      severity: physics.checks.gravity.severity || 9.0,
+      explanation: physics.checks.gravity.explanation
+    }] : []),
+    ...(physics.checks.shadows?.status === "VIOLATION" ? [{
+      frame: 150, time: "0:05", law: "Shadow",
+      severity: physics.checks.shadows.severity || 8.0,
+      explanation: physics.checks.shadows.explanation
+    }] : []),
+    ...(physics.checks.momentum?.status === "VIOLATION" ? [{
+      frame: 180, time: "0:06", law: "Momentum",
+      severity: physics.checks.momentum.severity || 7.5,
+      explanation: physics.checks.momentum.explanation
+    }] : []),
+    ...(physics.checks.material?.status === "VIOLATION" ? [{
+      frame: 210, time: "0:07", law: "Material",
+      severity: physics.checks.material.severity || 7.0,
+      explanation: physics.checks.material.explanation
+    }] : [])
+  ] : [];
+
+  // PDF Download Handler
+  const handleDownloadReport = () => {
+    if (!verdict || !physics) return;
+
+    generateForensicReport({
+      caseId: generateCaseId(),
+      timestamp: formatTimestamp(),
+      verdict: verdict.result as "authentic" | "synthetic",
+      confidence: verdict.confidence,
+      gravity: physics.gravity,
+      violations: verdict.violations || 0,
+      totalChecks: verdict.total_checks || 5,
+      reason: verdict.reason,
+      physicsChecks: [
+        { name: "Gravity", status: physics.checks?.gravity?.status || "PASS", severity: physics.checks?.gravity?.severity || 0, explanation: physics.checks?.gravity?.explanation },
+        { name: "Shadows", status: physics.checks?.shadows?.status || "PASS", severity: physics.checks?.shadows?.severity || 0, explanation: physics.checks?.shadows?.explanation },
+        { name: "Momentum", status: physics.checks?.momentum?.status || "PASS", severity: physics.checks?.momentum?.severity || 0, explanation: physics.checks?.momentum?.explanation },
+        { name: "Reflection", status: physics.checks?.reflection?.status || "PASS", severity: physics.checks?.reflection?.severity || 0, explanation: physics.checks?.reflection?.explanation },
+        { name: "Material", status: physics.checks?.material?.status || "PASS", severity: physics.checks?.material?.severity || 0, explanation: physics.checks?.material?.explanation },
+      ]
+    });
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -326,12 +376,21 @@ export default function VeritasCommandCenter() {
                       <p className="text-xs text-neutral-500">Violations</p>
                     </div>
                   </motion.div>
-                  <button
-                    onClick={handleAnalyze}
-                    className="mt-8 px-6 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-sm transition-colors"
-                  >
-                    Analyze Another
-                  </button>
+                  <div className="flex gap-3 mt-8">
+                    <button
+                      onClick={handleDownloadReport}
+                      className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition-colors"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download Report
+                    </button>
+                    <button
+                      onClick={handleAnalyze}
+                      className="px-6 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-sm transition-colors"
+                    >
+                      Analyze Another
+                    </button>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -355,8 +414,8 @@ export default function VeritasCommandCenter() {
                 <h3 className="text-sm font-medium text-neutral-400">Physics Analysis</h3>
                 {physics?.checks?.gravity?.severity && (
                   <span className={`ml-auto text-xs px-2 py-0.5 rounded ${physics.checks.gravity.severity >= 8 ? "bg-red-500/20 text-red-400" :
-                      physics.checks.gravity.severity >= 4 ? "bg-yellow-500/20 text-yellow-400" :
-                        "bg-emerald-500/20 text-emerald-400"
+                    physics.checks.gravity.severity >= 4 ? "bg-yellow-500/20 text-yellow-400" :
+                      "bg-emerald-500/20 text-emerald-400"
                     }`}>
                     {physics.checks.gravity.severity >= 8 ? "CRITICAL" :
                       physics.checks.gravity.severity >= 4 ? "SUSPICIOUS" : "NORMAL"}
@@ -371,7 +430,7 @@ export default function VeritasCommandCenter() {
                   <div className="flex items-center gap-2">
                     {physics?.checks?.gravity?.severity !== undefined && (
                       <span className={`text-xs font-bold ${physics.checks.gravity.severity >= 8 ? "text-red-400" :
-                          physics.checks.gravity.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                        physics.checks.gravity.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
                         }`}>
                         {physics.checks.gravity.severity.toFixed(1)}/10
                       </span>
@@ -407,7 +466,7 @@ export default function VeritasCommandCenter() {
                       <div className="flex items-center gap-2">
                         {physics?.checks?.shadows?.severity !== undefined && (
                           <span className={`text-xs font-bold ${physics.checks.shadows.severity >= 8 ? "text-red-400" :
-                              physics.checks.shadows.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                            physics.checks.shadows.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
                             }`}>{physics.checks.shadows.severity.toFixed(1)}/10</span>
                         )}
                         <span className={`text-xs font-mono ${physics?.checks?.shadows?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
@@ -432,7 +491,7 @@ export default function VeritasCommandCenter() {
                       <div className="flex items-center gap-2">
                         {physics?.checks?.momentum?.severity !== undefined && (
                           <span className={`text-xs font-bold ${physics.checks.momentum.severity >= 8 ? "text-red-400" :
-                              physics.checks.momentum.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                            physics.checks.momentum.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
                             }`}>{physics.checks.momentum.severity.toFixed(1)}/10</span>
                         )}
                         <span className={`text-xs font-mono ${physics?.checks?.momentum?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
@@ -457,7 +516,7 @@ export default function VeritasCommandCenter() {
                       <div className="flex items-center gap-2">
                         {physics?.checks?.reflection?.severity !== undefined && (
                           <span className={`text-xs font-bold ${physics.checks.reflection.severity >= 8 ? "text-red-400" :
-                              physics.checks.reflection.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                            physics.checks.reflection.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
                             }`}>{physics.checks.reflection.severity.toFixed(1)}/10</span>
                         )}
                         <span className={`text-xs font-mono ${physics?.checks?.reflection?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
@@ -482,7 +541,7 @@ export default function VeritasCommandCenter() {
                       <div className="flex items-center gap-2">
                         {physics?.checks?.material?.severity !== undefined && (
                           <span className={`text-xs font-bold ${physics.checks.material.severity >= 8 ? "text-red-400" :
-                              physics.checks.material.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
+                            physics.checks.material.severity >= 4 ? "text-yellow-400" : "text-emerald-400"
                             }`}>{physics.checks.material.severity.toFixed(1)}/10</span>
                         )}
                         <span className={`text-xs font-mono ${physics?.checks?.material?.status === "VIOLATION" ? "text-red-400" : "text-emerald-400"}`}>
@@ -502,6 +561,25 @@ export default function VeritasCommandCenter() {
                 </div>
               </div>
             </div>
+
+            {/* Physics Radar Chart */}
+            {physics?.checks && (
+              <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-4 h-4 text-neutral-500" />
+                  <h3 className="text-sm font-medium text-neutral-400">Severity Overview</h3>
+                </div>
+                <PhysicsRadarChart data={physics.checks} />
+              </div>
+            )}
+
+            {/* Timeline Scrubber */}
+            {timelineViolations.length > 0 && (
+              <TimelineScrubber
+                duration={30}
+                violations={timelineViolations}
+              />
+            )}
 
             {/* Agent Console */}
             <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5 h-72 flex flex-col">
