@@ -44,7 +44,6 @@ export const ScanningOverlay: React.FC<ScanningOverlayProps> = ({
                     animate={{ opacity: 1, scale: 1 }}
                     className="absolute border border-green-500/70 rounded"
                     style={{
-                        // Simulated positions for demo
                         left: `${20 + i * 25}%`,
                         top: `${30 + i * 10}%`,
                         width: "60px",

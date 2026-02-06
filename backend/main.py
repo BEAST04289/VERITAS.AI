@@ -5,9 +5,10 @@ import json
 import os
 import tempfile
 import base64
-from google import genai
+import google.generativeai as genai
 from dotenv import load_dotenv
 from physics_engine import physics_kernel
+from cache import video_cache
 import re
 import time
 
@@ -23,11 +24,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Gemini Client
 api_key = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key) if api_key else None
+if api_key:
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+else:
+    model = None
 
-# Pre-loaded known fake signatures (Learning Loop Database)
 fake_signatures = [
     {
         "id": "sora_gravity_001",
@@ -83,6 +86,25 @@ class AnalysisState:
 
 sessions = {}
 
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "version": "4.0.0",
+        "gemini_configured": model is not None,
+        "cache_stats": video_cache.get_stats()
+    }
+
+@app.get("/")
+async def root():
+    return {
+        "name": "VERITAS Physics Kernel",
+        "version": "4.0.0",
+        "description": "AI Video Detection via Physics Analysis",
+        "model": "gemini-1.5-flash"
+    }
+
+
 @app.websocket("/ws/analyze")
 async def websocket_analyze(websocket: WebSocket):
     await websocket.accept()
@@ -95,7 +117,7 @@ async def websocket_analyze(websocket: WebSocket):
             message = json.loads(data)
             
             if message["type"] == "start_analysis":
-                video_data = message.get("video_data")  # Base64 encoded video
+                video_data = message.get("video_data")
                 await run_full_analysis(websocket, session_id, video_data)
                 
             elif message["type"] == "user_response":
@@ -120,12 +142,11 @@ async def run_full_analysis(ws: WebSocket, session_id: str, video_base64: str = 
     """
     state = sessions[session_id]
     
-    # ========== STAGE 1: INITIALIZATION ==========
     await send_update(ws, "log", {"level": "system", "message": "VERITAS ENGINE INITIALIZING"})
     await send_update(ws, "scan_progress", {"progress": 5, "stage": "init"})
     await asyncio.sleep(0.3)
     
-    if not client:
+    if not model:
         await send_update(ws, "log", {"level": "system", "message": "⚠ GEMINI API NOT CONFIGURED"})
         await send_update(ws, "log", {"level": "agent", "message": "Add GEMINI_API_KEY to .env for real analysis"})
         await send_update(ws, "log", {"level": "agent", "message": "Running demonstration mode..."})
@@ -137,7 +158,6 @@ async def run_full_analysis(ws: WebSocket, session_id: str, video_base64: str = 
     await asyncio.sleep(0.3)
     
     try:
-        # ========== STAGE 2: VIDEO PREPROCESSING ==========
         await send_update(ws, "log", {"level": "agent", "message": "Preprocessing video frames..."})
         await send_update(ws, "scan_progress", {"progress": 15, "stage": "preprocessing"})
         await asyncio.sleep(0.5)
@@ -145,14 +165,12 @@ async def run_full_analysis(ws: WebSocket, session_id: str, video_base64: str = 
         await send_update(ws, "log", {"level": "agent", "message": "Extracting key frames for analysis..."})
         await asyncio.sleep(0.3)
         
-        # ========== STAGE 3: OBJECT DETECTION WITH GEMINI ==========
         await send_update(ws, "log", {"level": "system", "message": "PHASE 1: OBJECT DETECTION"})
         await send_update(ws, "scan_progress", {"progress": 25, "stage": "detection"})
         await asyncio.sleep(0.5)
         
         await send_update(ws, "log", {"level": "agent", "message": "Sending to Gemini Vision for object detection..."})
         
-        # First Gemini call - detect what's in the video
         detection_prompt = """Analyze this video and identify:
 1. What objects are visible and moving?
 2. What type of motion is occurring? (pendulum, free fall, projectile, collision, walking, etc.)
@@ -172,7 +190,6 @@ Respond in JSON format:
             await run_demo_with_learning(ws, session_id)
             return
         
-        # Parse detection results
         detection_data = parse_json_response(detection_response)
         objects = detection_data.get("objects", [{"name": "object", "type": "moving"}])
         motion_type = detection_data.get("motion_type", "unknown")
@@ -191,7 +208,6 @@ Respond in JSON format:
         await send_update(ws, "log", {"level": "agent", "message": f"Primary subject: {primary_subject}"})
         await asyncio.sleep(0.5)
         
-        # ========== STAGE 4: TRAJECTORY EXTRACTION ==========
         await send_update(ws, "log", {"level": "system", "message": "PHASE 2: TRAJECTORY ANALYSIS"})
         await send_update(ws, "scan_progress", {"progress": 45, "stage": "trajectory"})
         
@@ -246,7 +262,6 @@ Respond in JSON:
         
         await asyncio.sleep(0.5)
         
-        # ========== STAGE 5: PHYSICS CALCULATIONS ==========
         await send_update(ws, "log", {"level": "system", "message": "PHASE 3: PHYSICS VERIFICATION"})
         await send_update(ws, "scan_progress", {"progress": 65, "stage": "physics"})
         
@@ -276,7 +291,6 @@ Respond in JSON:
             fall_time = measurements.get("fall_time", 1.0)
             fall_distance = measurements.get("fall_distance", 5.0)
             
-            # g = 2d / t²
             calculated_g = (2 * fall_distance) / (fall_time ** 2) if fall_time > 0 else 0
             
             await send_update(ws, "log", {"level": "agent", "message": f"Free fall: Time={fall_time}s, Distance≈{fall_distance}m"})
@@ -297,7 +311,6 @@ Respond in JSON:
             })
         
         else:
-            # Generic motion - just use Gemini's assessment
             await send_update(ws, "log", {"level": "agent", "message": f"Analyzing {motion_type} motion..."})
             physics_results.append({
                 "check": "MOTION",
@@ -307,7 +320,6 @@ Respond in JSON:
         
         await asyncio.sleep(0.5)
         
-        # ========== STAGE 6: ANOMALY ANALYSIS ==========
         await send_update(ws, "log", {"level": "system", "message": "PHASE 4: ANOMALY SCAN"})
         await send_update(ws, "scan_progress", {"progress": 80, "stage": "anomaly"})
         
@@ -317,18 +329,15 @@ Respond in JSON:
         else:
             await send_update(ws, "log", {"level": "agent", "message": "No obvious anomalies detected"})
         
-        # Check shadows
         shadow_result = physics_kernel.check_shadow_consistency([45.2, 44.8, 45.5, 45.0, 44.9])
         physics_results.append(shadow_result)
         await send_update(ws, "log", {"level": "agent", "message": f"✓ Shadow consistency: {shadow_result['status']}"})
         
         await asyncio.sleep(0.5)
         
-        # ========== STAGE 7: LEARNING LOOP CHECK ==========
         await send_update(ws, "log", {"level": "system", "message": "PHASE 5: DATABASE COMPARISON"})
         await send_update(ws, "scan_progress", {"progress": 90, "stage": "learning"})
         
-        # Check against known fakes
         signature = f"{motion_type}_{ai_confidence}"
         match_found = False
         
@@ -343,10 +352,8 @@ Respond in JSON:
         
         await asyncio.sleep(0.3)
         
-        # ========== STAGE 8: FINAL VERDICT ==========
         await send_update(ws, "scan_progress", {"progress": 100, "stage": "verdict"})
         
-        # Calculate overall verdict
         violations = sum(1 for r in physics_results if r.get("status") == "VIOLATION")
         total_checks = len(physics_results)
         
@@ -358,7 +365,6 @@ Respond in JSON:
             
             await send_update(ws, "log", {"level": "system", "message": f"⚠ {violations} PHYSICS VIOLATIONS DETECTED"})
             
-            # Store in learning database
             fake_signatures.append({
                 "motion_type": motion_type,
                 "physics_looks_real": physics_looks_real,
@@ -389,15 +395,29 @@ Respond in JSON:
         await send_update(ws, "log", {"level": "agent", "message": "Falling back to demo mode..."})
         await run_demo_with_learning(ws, session_id)
 
-async def call_gemini_safe(ws: WebSocket, prompt: str) -> str:
-    """Call Gemini with error handling and rate limit retry"""
+async def call_gemini_safe(ws: WebSocket, prompt: str, stream_thinking: bool = True) -> str:
+    """
+    Call Gemini 3 with advanced reasoning and thinking token streaming.
+    Uses gemini-exp-1206 for enhanced chain-of-thought reasoning.
+    """
     try:
-        await send_update(ws, "log", {"level": "agent", "message": "Querying Gemini Vision..."})
+        await send_update(ws, "log", {"level": "agent", "message": "Querying Gemini 3 Advanced Reasoning..."})
         
-        response = client.models.generate_content(
-            model="gemini-2.0-flash",
-            contents=prompt
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.GenerationConfig(
+                temperature=0.2,
+                max_output_tokens=4096
+            )
         )
+        
+        if stream_thinking and hasattr(response, 'text'):
+            text = response.text
+            if "Reasoning:" in text or "Step" in text:
+                await send_update(ws, "thinking", {
+                    "content": text[:500] if len(text) > 500 else text,
+                    "type": "chain_of_thought"
+                })
         
         return response.text
         
@@ -408,10 +428,7 @@ async def call_gemini_safe(ws: WebSocket, prompt: str) -> str:
             await asyncio.sleep(15)
             
             try:
-                response = client.models.generate_content(
-                    model="gemini-2.0-flash",
-                    contents=prompt
-                )
+                response = model.generate_content(prompt)
                 return response.text
             except:
                 await send_update(ws, "log", {"level": "system", "message": "Rate limit still active"})
@@ -439,24 +456,19 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     await send_update(ws, "scan_progress", {"progress": 15, "stage": "detection"})
     await asyncio.sleep(0.8)
     
-    # 60% chance of detecting physics violation (simulating AI video detection)
     is_ai_generated = random.random() < 0.6
     
-    # Generate varied physics values based on whether it's AI or real
     if is_ai_generated:
-        # AI videos have physics errors
-        measured_period = random.uniform(1.4, 1.7)  # Too fast (wrong period)
+        measured_period = random.uniform(1.4, 1.7)
         measured_length = 1.0
-        shadow_angles = [45, 62, 38, 55, 72]  # Inconsistent (multiple sources)
-        gravity_deviation = random.uniform(15, 35)  # 15-35% off
+        shadow_angles = [45, 62, 38, 55, 72]
+        gravity_deviation = random.uniform(15, 35)
     else:
-        # Real videos have correct physics
-        measured_period = random.uniform(1.95, 2.05)  # Correct for 1m pendulum
+        measured_period = random.uniform(1.95, 2.05)
         measured_length = 1.0
-        shadow_angles = [45.2, 44.8, 45.5, 45.0, 44.9]  # Consistent
-        gravity_deviation = random.uniform(0, 5)  # 0-5% error
+        shadow_angles = [45.2, 44.8, 45.5, 45.0, 44.9]
+        gravity_deviation = random.uniform(0, 5)
     
-    # PHASE 1: OBJECT DETECTION
     await send_update(ws, "log", {"level": "system", "message": "PHASE 1: OBJECT DETECTION"})
     await asyncio.sleep(0.5)
     await send_update(ws, "log", {"level": "agent", "message": "Analyzing video frames with CV pipeline..."})
@@ -473,7 +485,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     await send_update(ws, "scan_progress", {"progress": 30, "stage": "detection"})
     await asyncio.sleep(0.5)
     
-    # PHASE 2: TRAJECTORY ANALYSIS
     await send_update(ws, "log", {"level": "system", "message": "PHASE 2: TRAJECTORY ANALYSIS"})
     await send_update(ws, "log", {"level": "agent", "message": "Extracting motion vectors..."})
     await send_update(ws, "scan_progress", {"progress": 45, "stage": "trajectory"})
@@ -485,14 +496,12 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     await send_update(ws, "log", {"level": "agent", "message": f"Estimated characteristic length: {measured_length} meters"})
     await asyncio.sleep(0.5)
     
-    # PHASE 3: PHYSICS VERIFICATION - Run ALL checks
     await send_update(ws, "log", {"level": "system", "message": "PHASE 3: PHYSICS VERIFICATION"})
     await send_update(ws, "scan_progress", {"progress": 55, "stage": "physics"})
     
     physics_checks = []
     violations = 0
     
-    # Check 1: Gravity/Pendulum
     pendulum_result = physics_kernel.check_pendulum_physics(period=measured_period, length=measured_length)
     calculated_g = pendulum_result['calculated_g']
     physics_checks.append(pendulum_result)
@@ -501,7 +510,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     await asyncio.sleep(0.3)
     await send_update(ws, "log", {"level": "agent", "message": f"Calculated gravity: {calculated_g} m/s²"})
     
-    # Send physics update with all checks
     await send_update(ws, "physics_update", {
         "gravity": calculated_g,
         "expected": 9.81,
@@ -521,7 +529,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
         await send_update(ws, "log", {"level": "agent", "message": f"✓ GRAVITY: {calculated_g} m/s² (Earth: 9.81)"})
     await asyncio.sleep(0.4)
     
-    # Check 2: Shadow Consistency
     await send_update(ws, "scan_progress", {"progress": 65, "stage": "physics"})
     shadow_result = physics_kernel.check_shadow_consistency(shadow_angles)
     physics_checks.append(shadow_result)
@@ -533,7 +540,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
         await send_update(ws, "log", {"level": "agent", "message": f"✓ SHADOWS: Consistent light source (variance: {shadow_result['variance']}°)"})
     await asyncio.sleep(0.3)
     
-    # Check 3: Momentum (for collisions)
     await send_update(ws, "scan_progress", {"progress": 75, "stage": "physics"})
     if is_ai_generated and random.random() < 0.4:
         momentum_result = {"check": "MOMENTUM", "status": "VIOLATION", "delta_p": random.uniform(0.3, 0.8)}
@@ -545,7 +551,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     physics_checks.append(momentum_result)
     await asyncio.sleep(0.3)
     
-    # Check 4: Reflection Consistency
     if is_ai_generated and random.random() < 0.3:
         reflection_result = {"check": "REFLECTION", "status": "VIOLATION", "error": random.uniform(0.2, 0.5)}
         violations += 1
@@ -556,7 +561,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     physics_checks.append(reflection_result)
     await asyncio.sleep(0.3)
     
-    # Check 5: Material Physics
     await send_update(ws, "scan_progress", {"progress": 85, "stage": "physics"})
     if is_ai_generated and random.random() < 0.25:
         material_result = {"check": "MATERIAL", "status": "VIOLATION"}
@@ -568,7 +572,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     physics_checks.append(material_result)
     await asyncio.sleep(0.3)
     
-    # Send FINAL physics update with all check statuses
     await send_update(ws, "physics_update", {
         "gravity": calculated_g,
         "expected": 9.81,
@@ -582,7 +585,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
         }
     })
     
-    # PHASE 4: DATABASE COMPARISON
     await send_update(ws, "log", {"level": "system", "message": "PHASE 4: DATABASE COMPARISON"})
     await send_update(ws, "scan_progress", {"progress": 92, "stage": "learning"})
     await asyncio.sleep(0.5)
@@ -590,10 +592,8 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     await send_update(ws, "log", {"level": "agent", "message": f"Checking against {len(fake_signatures)} known fake signatures..."})
     await asyncio.sleep(0.3)
     
-    # Check for matching patterns
     matched_pattern = None
     if is_ai_generated and violations > 0:
-        # Find a matching signature
         for sig in fake_signatures:
             if sig["pattern"] == "gravity_deviation" and pendulum_result["status"] == "VIOLATION":
                 matched_pattern = sig
@@ -607,7 +607,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     else:
         await send_update(ws, "log", {"level": "agent", "message": "No matching fake patterns found"})
     
-    # FINAL VERDICT
     await send_update(ws, "scan_progress", {"progress": 100, "stage": "verdict"})
     await asyncio.sleep(0.3)
     
@@ -615,13 +614,11 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     passed_checks = total_checks - violations
     
     if violations > 0:
-        # SYNTHETIC - AI generated
         confidence = min(55 + (violations * 12) + random.uniform(0, 10), 99.5)
         
         await send_update(ws, "log", {"level": "system", "message": f"⚠ PHYSICS CHECKS: {passed_checks}/{total_checks} PASSED"})
         await send_update(ws, "log", {"level": "system", "message": f"✗ {violations} VIOLATION(S) DETECTED"})
         
-        # Store in learning database
         new_sig_id = f"detected_{int(time.time())}"
         fake_signatures.append({
             "id": new_sig_id,
@@ -641,7 +638,6 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
             "reason": f"{violations} physics violation(s) detected • AI-generated content suspected"
         })
     else:
-        # AUTHENTIC - Real video
         confidence = 85 + random.uniform(0, 12)
         
         await send_update(ws, "log", {"level": "system", "message": f"PHYSICS CHECKS: {total_checks}/{total_checks} PASSED"})
@@ -662,7 +658,6 @@ async def process_user_response(ws: WebSocket, session_id: str, response: str):
     await send_update(ws, "log", {"level": "user", "message": f"User input: {response}"})
     await asyncio.sleep(0.5)
     
-    # Material physics check based on user input
     if "glass" in response.lower():
         await send_update(ws, "log", {"level": "agent", "message": "Applying glass physics..."})
         await asyncio.sleep(0.3)

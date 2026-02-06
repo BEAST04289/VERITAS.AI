@@ -1,15 +1,19 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Zap, MessageSquare, AlertTriangle, CheckCircle, Loader2, Video, Shield, Download } from "lucide-react";
+import { Upload, Zap, MessageSquare, AlertTriangle, CheckCircle, Loader2, Video, Shield, Download, Volume2, VolumeX } from "lucide-react";
 import { useVeritasAnalysis } from "@/hooks/use-veritas-analysis";
 import { useKillSwitch } from "@/hooks/use-kill-switch";
+import { useVoice } from "@/hooks/use-voice";
 import { ScanningOverlay } from "@/components/ui/scanning-overlay";
 import { WaterRipple } from "@/components/ui/water-ripple";
 import { TimelineScrubber } from "@/components/ui/timeline-scrubber";
 import { PhysicsRadarChart } from "@/components/ui/physics-radar-chart";
 import { ComparisonView } from "@/components/ui/comparison-view";
+import { ThinkingLogsPanel } from "@/components/ui/thinking-logs-panel";
+import { AskGeminiPanel } from "@/components/ui/ask-gemini";
+import { ShareButtons } from "@/components/ui/share-buttons";
 import { generateForensicReport, generateCaseId, formatTimestamp } from "@/lib/pdf-generator";
 
 export default function VeritasCommandCenter() {
@@ -19,7 +23,6 @@ export default function VeritasCommandCenter() {
   const [userInput, setUserInput] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Demo mode messages state
   const [demoMessages, setDemoMessages] = useState<Array<{ level: string; message: string }>>([]);
   const [demoPhysics, setDemoPhysics] = useState<any>(null);
   const [demoVerdict, setDemoVerdict] = useState<any>(null);
@@ -41,7 +44,6 @@ export default function VeritasCommandCenter() {
     reset
   } = useVeritasAnalysis();
 
-  // Kill Switch for demo mode
   const {
     isDemoMode,
     runDemoScenario,
@@ -55,14 +57,38 @@ export default function VeritasCommandCenter() {
     (prog, stg) => { setDemoProgress(prog); setDemoStage(stg); }
   );
 
-  // Use demo or live data based on mode
+  const { speak, isSpeaking, isEnabled: voiceEnabled, toggleVoice } = useVoice();
+
+  const [thinkingLogs, setThinkingLogs] = useState<Array<{ content: string; type: string; timestamp: number }>>([]);
+
   const messages = isDemoMode ? demoMessages : liveMessages;
   const physics = isDemoMode ? demoPhysics : livePhysics;
   const verdict = isDemoMode ? demoVerdict : liveVerdict;
   const progress = isDemoMode ? demoProgress : liveProgress;
   const stage = isDemoMode ? demoStage : liveStage;
 
-  // Timeline violations from demo data or generate from physics
+  useEffect(() => {
+    if (verdict && voiceEnabled) {
+      const resultText = verdict.result === "synthetic" ? "SYNTHETIC - AI Generated" : "AUTHENTIC - Real Video";
+      const speech = `Analysis complete. Verdict: ${resultText}. Confidence: ${verdict.confidence} percent. ${verdict.violations || 0} physics violations detected. ${verdict.reason}`;
+      speak(speech);
+    }
+  }, [verdict, voiceEnabled, speak]);
+
+  useEffect(() => {
+    if (isDemoMode && messages.length > 0) {
+      const newLogs = messages
+        .filter(m => m.level === "agent" || m.message.includes("Gemini"))
+        .slice(-5)
+        .map((m, i) => ({
+          content: m.message,
+          type: m.level === "agent" ? "chain_of_thought" : "observation",
+          timestamp: Date.now() + i
+        }));
+      setThinkingLogs(newLogs);
+    }
+  }, [messages, isDemoMode]);
+
   const timelineViolations = physics?.checks ? [
     ...(physics.checks.gravity?.status === "VIOLATION" ? [{
       frame: 90, time: "0:03", law: "Gravity",
@@ -86,7 +112,6 @@ export default function VeritasCommandCenter() {
     }] : [])
   ] : [];
 
-  // PDF Download Handler
   const handleDownloadReport = () => {
     if (!verdict || !physics) return;
 
@@ -128,7 +153,6 @@ export default function VeritasCommandCenter() {
 
   const handleAnalyze = () => {
     if (verdict) {
-      // Reset for new analysis
       reset();
       setVideoFile(null);
       setVideoPreview(null);
@@ -139,7 +163,6 @@ export default function VeritasCommandCenter() {
       return;
     }
 
-    // If demo mode is active, run demo scenario
     if (isDemoMode) {
       setDemoMessages([]);
       setDemoPhysics(null);
@@ -175,7 +198,7 @@ export default function VeritasCommandCenter() {
               <motion.h1
                 className="text-2xl font-semibold tracking-tight"
                 style={{
-                  background: isDemoMode
+                  backgroundImage: isDemoMode
                     ? "linear-gradient(90deg, #ffd700 0%, #ffea00 50%, #ffd700 100%)"
                     : "linear-gradient(90deg, #4a4a4a 0%, #ffffff 50%, #4a4a4a 100%)",
                   backgroundSize: "200% 100%",
@@ -201,6 +224,21 @@ export default function VeritasCommandCenter() {
           </div>
 
           <div className="flex items-center gap-6 text-xs text-neutral-500">
+            {/* Voice Toggle (Jarvis Mode) */}
+            <motion.button
+              onClick={toggleVoice}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className={`flex items-center gap-2 px-3 py-1 rounded-full transition-all ${voiceEnabled
+                ? "bg-purple-500/10 border border-purple-500/30 text-purple-400"
+                : "bg-neutral-800 border border-neutral-700 text-neutral-500"
+                }`}
+              title={voiceEnabled ? "Voice enabled (Jarvis Mode)" : "Voice disabled"}
+            >
+              {voiceEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
+              <span className="font-medium">{voiceEnabled ? "JARVIS" : "MUTED"}</span>
+            </motion.button>
+
             {/* Demo Mode Indicator */}
             {isDemoMode && (
               <motion.div
@@ -379,20 +417,32 @@ export default function VeritasCommandCenter() {
                       <p className="text-xs text-neutral-500">Violations</p>
                     </div>
                   </motion.div>
-                  <div className="flex gap-3 mt-8">
-                    <button
-                      onClick={handleDownloadReport}
-                      className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition-colors"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download Report
-                    </button>
-                    <button
-                      onClick={handleAnalyze}
-                      className="px-6 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-sm transition-colors"
-                    >
-                      Analyze Another
-                    </button>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col gap-3 mt-8">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleDownloadReport}
+                        className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download Report
+                      </button>
+                      <button
+                        onClick={handleAnalyze}
+                        className="px-6 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-sm transition-colors"
+                      >
+                        Analyze Another
+                      </button>
+                    </div>
+
+                    {/* Share Buttons */}
+                    <div className="flex justify-center">
+                      <ShareButtons
+                        verdict={verdict.result}
+                        confidence={verdict.confidence}
+                      />
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -424,6 +474,21 @@ export default function VeritasCommandCenter() {
 
           {/* Right Panel */}
           <div className="col-span-4 space-y-4">
+
+            {/* Thinking Logs Panel - Shows Gemini 3 Reasoning */}
+            <ThinkingLogsPanel
+              logs={thinkingLogs}
+              isVisible={isAnalyzing || thinkingLogs.length > 0}
+            />
+
+            {/* Ask Gemini Panel - Appears after verdict */}
+            {verdict && (
+              <AskGeminiPanel
+                verdict={verdict}
+                physics={physics}
+                onSpeak={voiceEnabled ? speak : undefined}
+              />
+            )}
 
             {/* Physics Data */}
             <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">

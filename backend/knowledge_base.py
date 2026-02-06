@@ -22,19 +22,16 @@ class KnowledgeBase:
             anonymized_telemetry=False
         ))
         
-        # Collection for fake signatures
         self.fakes = self.client.get_or_create_collection(
             name="fake_signatures",
             metadata={"description": "Known AI-generated content signatures"}
         )
         
-        # Collection for analysis history
         self.history = self.client.get_or_create_collection(
             name="analysis_history",
             metadata={"description": "Past analysis results"}
         )
         
-        # Pre-load known AI model signatures
         self._load_known_signatures()
     
     def _load_known_signatures(self):
@@ -85,7 +82,6 @@ class KnowledgeBase:
             }
         ]
         
-        # Check if already loaded
         existing = self.fakes.count()
         if existing == 0:
             for fake in known_fakes:
@@ -105,7 +101,6 @@ class KnowledgeBase:
         Find similar fake patterns based on physics signature.
         Returns list of matching known fakes.
         """
-        # Query based on description
         query_text = f"gravity deviation {physics_signature.get('gravity', 9.8)} shadow {physics_signature.get('shadow_variance', 0)}"
         
         results = self.fakes.query(
@@ -185,5 +180,4 @@ class KnowledgeBase:
             "total_analyses": self.history.count()
         }
 
-# Singleton instance
 knowledge_base = KnowledgeBase()

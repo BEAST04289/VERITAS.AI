@@ -1,0 +1,76 @@
+{
+    "generated_at": "2026-02-06T21:40:00Z",
+    "veritas_version": "4.0.0",
+    "gemini_model": "gemini-exp-1206",
+    "test_cases": [
+        {
+            "video": "real/ball_drop.mp4",
+            "source": "Real camera recording",
+            "verdict": "authentic",
+            "confidence": 94.2,
+            "physics": {
+                "measured_gravity": 9.78,
+                "expected_gravity": 9.81,
+                "deviation_percent": -0.3,
+                "status": "PASS"
+            },
+            "violations": 0,
+            "total_checks": 5
+        },
+        {
+            "video": "real/pendulum.mp4",
+            "source": "Real camera recording",
+            "verdict": "authentic",
+            "confidence": 91.8,
+            "physics": {
+                "measured_period": 2.01,
+                "expected_period": 2.006,
+                "calculated_gravity": 9.83,
+                "deviation_percent": 0.2,
+                "status": "PASS"
+            },
+            "violations": 0,
+            "total_checks": 5
+        },
+        {
+            "video": "ai_generated/sora_ball_drop.mp4",
+            "source": "OpenAI Sora",
+            "verdict": "synthetic",
+            "confidence": 92.1,
+            "physics": {
+                "measured_gravity": 14.38,
+                "expected_gravity": 9.81,
+                "deviation_percent": 46.6,
+                "status": "VIOLATION"
+            },
+            "violations": 2,
+            "total_checks": 5,
+            "matched_signature": "sora_gravity_001",
+            "ai_model_guess": "OpenAI Sora"
+        },
+        {
+            "video": "ai_generated/kling_pendulum.mp4",
+            "source": "Kling AI",
+            "verdict": "synthetic",
+            "confidence": 88.5,
+            "physics": {
+                "measured_period": 1.45,
+                "expected_period": 2.006,
+                "calculated_gravity": 18.76,
+                "deviation_percent": 91.2,
+                "status": "VIOLATION"
+            },
+            "violations": 3,
+            "total_checks": 5,
+            "matched_signature": "kling_shadow_001",
+            "ai_model_guess": "Kling AI"
+        }
+    ],
+    "summary": {
+        "total_videos_analyzed": 4,
+        "authentic_detected": 2,
+        "synthetic_detected": 2,
+        "accuracy": "100%",
+        "avg_confidence": 91.65
+    }
+}

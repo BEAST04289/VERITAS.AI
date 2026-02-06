@@ -12,7 +12,8 @@ interface ViolationMarker {
 }
 
 interface TimelineScrubberProps {
-    duration: number; // Total video duration in seconds
+    duration: number;
+
     violations: ViolationMarker[];
     currentTime?: number;
     onSeek?: (time: number) => void;

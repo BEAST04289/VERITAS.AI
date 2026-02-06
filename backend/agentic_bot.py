@@ -18,10 +18,8 @@ class InterrogatorBot:
         api_key = os.getenv("GEMINI_API_KEY")
         self.client = genai.Client(api_key=api_key) if api_key else None
         
-        # Ambiguity thresholds
-        self.AMBIGUITY_THRESHOLD = 0.3  # 30% uncertainty triggers questioning
+        self.AMBIGUITY_THRESHOLD = 0.3
         
-        # Question templates based on physics type
         self.question_templates = {
             "material": {
                 "trigger": "impact_detected",
@@ -71,24 +69,20 @@ class InterrogatorBot:
         question_type = None
         question = None
         
-        # Check gravity anomaly
         g = physics_result.get("calculated_g", physics_result.get("gravity", 9.8))
         deviation = abs(g - 9.8) / 9.8
         
-        # Moderate anomaly (10-40%) - could be fake OR unusual environment
         if 0.1 < deviation < 0.4:
             needs_input = True
             question_type = "gravity"
             question = self.question_templates["gravity"]["question"].format(g=round(g, 2))
         
-        # Check for impact events
         if physics_result.get("impact_detected"):
             velocity = physics_result.get("impact_velocity", 10)
             needs_input = True
             question_type = "material"
             question = self.question_templates["material"]["question"].format(velocity=velocity)
         
-        # Check for high deceleration
         if physics_result.get("deceleration", 0) > 30:
             needs_input = True
             question_type = "deceleration"
@@ -148,7 +142,7 @@ class InterrogatorBot:
             
             error = abs(measured_g - expected_g) / expected_g
             
-            if error > 0.2:  # More than 20% error
+            if error > 0.2:
                 is_fake = True
                 confidence = 0.90
                 reasoning_steps.append(f"ERROR: Gravity doesn't match {answer} environment")
@@ -189,7 +183,6 @@ class InterrogatorBot:
         Generate human-readable explanation using Gemini.
         """
         if not self.client:
-            # Fallback without API
             explanations = []
             for result in physics_results:
                 check = result.get("check", "Unknown")
@@ -226,5 +219,4 @@ Focus on the specific physics violation if any."""
         except:
             return "Analysis complete. See detailed results above."
 
-# Singleton
 interrogator = InterrogatorBot()

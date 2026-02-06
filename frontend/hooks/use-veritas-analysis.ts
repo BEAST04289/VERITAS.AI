@@ -28,6 +28,9 @@ interface UseVeritasAnalysisReturn {
     verdict: { result: string; confidence: number; gravity: number; reason: string; violations?: number; total_checks?: number } | null;
     objects: Array<{ id: number; type: string; confidence: number }>;
     trajectory: Array<{ t: number; x: number; y: number }>;
+    thinkingLogs: Array<{ content: string; type: string; timestamp: number }>;
+    userConfirmation: { needed: boolean; question: string; options: string[] } | null;
+    cacheHit: { hit: boolean; similarity: number; cachedResult?: any } | null;
     startAnalysis: (videoData?: string) => void;
     sendUserResponse: (response: string) => void;
     reset: () => void;
@@ -44,6 +47,9 @@ export function useVeritasAnalysis(): UseVeritasAnalysisReturn {
     const [verdict, setVerdict] = useState<{ result: string; confidence: number; gravity: number; reason: string; violations?: number; total_checks?: number } | null>(null);
     const [objects, setObjects] = useState<Array<{ id: number; type: string; confidence: number }>>([]);
     const [trajectory, setTrajectory] = useState<Array<{ t: number; x: number; y: number }>>([]);
+    const [thinkingLogs, setThinkingLogs] = useState<Array<{ content: string; type: string; timestamp: number }>>([]);
+    const [userConfirmation, setUserConfirmation] = useState<{ needed: boolean; question: string; options: string[] } | null>(null);
+    const [cacheHit, setCacheHit] = useState<{ hit: boolean; similarity: number; cachedResult?: any } | null>(null);
 
     const connect = useCallback(() => {
         if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -101,6 +107,34 @@ export function useVeritasAnalysis(): UseVeritasAnalysisReturn {
                     });
                     setIsAnalyzing(false);
                     break;
+
+                case "thinking":
+                    setThinkingLogs(prev => [...prev, {
+                        content: (data as any).content || "",
+                        type: (data as any).type || "chain_of_thought",
+                        timestamp: Date.now()
+                    }]);
+                    break;
+
+                case "user_confirmation_needed":
+                    setUserConfirmation({
+                        needed: true,
+                        question: (data as any).question || "Please confirm",
+                        options: (data as any).options || ["Yes", "No"]
+                    });
+                    break;
+
+                case "cache_hit":
+                    setCacheHit({
+                        hit: true,
+                        similarity: (data as any).similarity || 0,
+                        cachedResult: (data as any).cached_result
+                    });
+                    setMessages(prev => [...prev, {
+                        level: "system",
+                        message: `⚡ Cache hit! ${((data as any).similarity * 100).toFixed(0)}% similar video found`
+                    }]);
+                    break;
             }
         };
 
@@ -110,12 +144,10 @@ export function useVeritasAnalysis(): UseVeritasAnalysisReturn {
     const startAnalysis = useCallback((videoData?: string) => {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
             connect();
-            // Retry after connection
             setTimeout(() => startAnalysis(videoData), 500);
             return;
         }
 
-        // Reset state
         setMessages([]);
         setProgress(0);
         setStage("");
@@ -148,6 +180,9 @@ export function useVeritasAnalysis(): UseVeritasAnalysisReturn {
         setVerdict(null);
         setObjects([]);
         setTrajectory([]);
+        setThinkingLogs([]);
+        setUserConfirmation(null);
+        setCacheHit(null);
         setIsAnalyzing(false);
     }, []);
 
@@ -168,6 +203,9 @@ export function useVeritasAnalysis(): UseVeritasAnalysisReturn {
         verdict,
         objects,
         trajectory,
+        thinkingLogs,
+        userConfirmation,
+        cacheHit,
         startAnalysis,
         sendUserResponse,
         reset

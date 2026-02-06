@@ -27,7 +27,6 @@ export function ComparisonView({
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
 
-    // Sync both videos
     useEffect(() => {
         if (!realVideoRef.current || !simVideoRef.current) return;
 
@@ -66,7 +65,6 @@ export function ComparisonView({
         setIsPlaying(true);
     };
 
-    // Sync simulation video to real video
     useEffect(() => {
         if (simVideoRef.current && realVideoRef.current) {
             const diff = Math.abs(simVideoRef.current.currentTime - realVideoRef.current.currentTime);

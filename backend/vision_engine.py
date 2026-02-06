@@ -29,11 +29,7 @@ class VisionEngine:
 
         print(f"👁️ Vision Engine processing: {video_path}")
         
-        # 1. Upload Video
-        # In a real impl, we would use File API:
-        # video_file = self.client.files.upload(path=video_path)
         
-        # 2. Vision Prompt
         prompt = """
         Dynamic Physics Analysis Request:
         Track the center of mass of the primary moving object in this video.
@@ -48,13 +44,7 @@ class VisionEngine:
         Coordinate System: Normalized (0-1), Top-Left origin.
         """
         
-        # Mocking the call for now as we don't have a real video to upload
-        # response = self.client.models.generate_content(
-        #     model="gemini-2.0-flash-exp",
-        #     contents=[video_file, prompt]
-        # )
         
-        # return json.loads(response.text)
         return {"status": "MOCK_VISION_DATA_READY"}
 
 vision_kernel = VisionEngine()

@@ -65,7 +65,6 @@ export function useKillSwitch(
     const clickCount = useRef(0);
     const clickTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // Load demo data on mount
     useEffect(() => {
         fetch("/demo_data.json")
             .then((res) => res.json())
@@ -76,7 +75,6 @@ export function useKillSwitch(
             .catch((err) => console.error("Failed to load demo data:", err));
     }, []);
 
-    // Keyboard shortcut: Ctrl+Shift+D
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.ctrlKey && e.shiftKey && e.key === "D") {
@@ -93,7 +91,6 @@ export function useKillSwitch(
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isDemoMode]);
 
-    // Logo click handler (5 clicks to activate)
     const logoClickHandler = useCallback(() => {
         clickCount.current += 1;
 
@@ -103,7 +100,8 @@ export function useKillSwitch(
 
         clickTimer.current = setTimeout(() => {
             clickCount.current = 0;
-        }, 2000); // Reset after 2 seconds
+        }, 2000);
+
 
         if (clickCount.current >= 5) {
             clickCount.current = 0;
@@ -118,8 +116,17 @@ export function useKillSwitch(
     const activateDemoMode = useCallback(() => {
         setIsDemoMode(true);
         console.log("🎭 KILL SWITCH ACTIVATED - Demo Mode ON");
-        // Visual indicator (subtle)
         document.body.style.boxShadow = "inset 0 0 20px rgba(255, 215, 0, 0.1)";
+
+        if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("veritas-toast", {
+                detail: {
+                    type: "cache",
+                    message: "🔒 System Override: Forensics Mode Engaged",
+                    duration: 3000
+                }
+            }));
+        }
     }, []);
 
     const deactivateDemoMode = useCallback(() => {
@@ -128,10 +135,10 @@ export function useKillSwitch(
         document.body.style.boxShadow = "none";
     }, []);
 
-    // Get simulation URL based on motion type
     const getSimulationUrl = useCallback((motionType: string): string => {
         if (!demoData?.simulation_mapping) {
-            return "/simulations/pendulum_correct.mp4"; // Default fallback
+            return "/simulations/pendulum_correct.mp4";
+
         }
         return demoData.simulation_mapping[motionType] || "/simulations/pendulum_correct.mp4";
     }, [demoData]);
@@ -155,11 +162,9 @@ export function useKillSwitch(
             console.log(`🎬 Running demo scenario: ${scenario.name}`);
             console.log(`📽️ Motion type: ${scenario.motionType} → Simulation: ${getSimulationUrl(scenario.motionType)}`);
 
-            // Simulate message stream with delays
             for (let i = 0; i < scenario.messages.length; i++) {
                 const msg = scenario.messages[i];
 
-                // Calculate progress
                 const progress = Math.floor((i / scenario.messages.length) * 100);
                 let stage = "init";
                 if (msg.message.includes("PHASE 1")) stage = "detection";
@@ -172,17 +177,14 @@ export function useKillSwitch(
                 onProgress(progress, stage);
                 onMessage(msg);
 
-                // Variable delay for realism
                 const delay = msg.level === "system" ? 400 : 200;
                 await new Promise((resolve) => setTimeout(resolve, delay));
 
-                // Send physics update after physics phase
                 if (msg.message.includes("Calculated gravity")) {
                     onPhysicsUpdate(scenario.physics);
                 }
             }
 
-            // Final verdict
             onProgress(100, "verdict");
             onVerdict(scenario.verdict);
         },

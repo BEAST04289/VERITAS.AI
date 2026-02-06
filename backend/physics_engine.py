@@ -9,8 +9,8 @@ class PhysicsEngine:
     """
     
     def __init__(self):
-        self.EARTH_GRAVITY = 9.81  # m/s^2
-        self.GRAVITY_TOLERANCE = 1.5  # +/- 1.5 m/s^2 allowed
+        self.EARTH_GRAVITY = 9.81
+        self.GRAVITY_TOLERANCE = 1.5
         
     def parabolic_model(self, t, v0, g, h0):
         """Kinematic equation for vertical motion: y = h0 + v0*t - 0.5*g*t^2"""
@@ -70,7 +70,7 @@ class PhysicsEngine:
             return {"check": "SHADOWS", "status": "INSUFFICIENT_DATA"}
         
         angle_variance = np.var(light_angles)
-        max_variance = 15  # degrees
+        max_variance = 15
         
         is_violation = angle_variance > max_variance
         
@@ -87,7 +87,7 @@ class PhysicsEngine:
         Physics Check 4: Material Physics (e.g., glass should shatter)
         """
         shatter_velocities = {
-            "glass": 8.0,      # m/s
+            "glass": 8.0,
             "ceramic": 6.0,
             "plastic": 15.0,
             "wood": 20.0,
@@ -193,11 +193,9 @@ class PhysicsEngine:
                 data.get("v2_after", 5)
             ))
         
-        # Always check shadows if data available
         if "shadow_angles" in data:
             results.append(self.check_shadow_consistency(data["shadow_angles"]))
         
-        # Check material physics if impact detected
         if "material" in data and "impact_velocity" in data:
             results.append(self.check_material_physics(
                 data["material"],
@@ -207,5 +205,4 @@ class PhysicsEngine:
         
         return results
 
-# Singleton instance
 physics_kernel = PhysicsEngine()

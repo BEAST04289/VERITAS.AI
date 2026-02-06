@@ -36,13 +36,15 @@ export function PhysicsRadarChart({ data }: PhysicsRadarChartProps) {
         { law: "Material", severity: data.material?.severity || 0, fullMark: 10 },
     ];
 
-    // Calculate average severity for color
     const avgSeverity = chartData.reduce((acc, d) => acc + d.severity, 0) / chartData.length;
 
     const getColor = () => {
-        if (avgSeverity >= 6) return "#ef4444"; // red
-        if (avgSeverity >= 3) return "#eab308"; // yellow
-        return "#22c55e"; // green
+        if (avgSeverity >= 6) return "#ef4444";
+
+        if (avgSeverity >= 3) return "#eab308";
+
+        return "#22c55e";
+
     };
 
     const CustomTooltip = ({ active, payload }: any) => {

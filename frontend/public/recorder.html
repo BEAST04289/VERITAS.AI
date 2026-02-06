@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VERITAS Simulation Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #000; color: #fff; font-family: monospace; }
+        canvas { border: 1px solid #333; background-image: 
+            linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen gap-6 p-4">
+
+    <div class="text-center space-y-2">
+        <h1 class="text-2xl font-bold text-emerald-500">VERITAS SIMULATION STUDIO</h1>
+        <p class="text-neutral-400 text-sm">Select a scenario, hit Record on your screen recorder, then click Start.</p>
+    </div>
+
+    <div class="relative">
+        <div class="absolute top-4 left-4 font-mono text-sm pointer-events-none select-none">
+            <div class="text-emerald-400 font-bold">VERITAS PHYSICS ENGINE</div>
+            <div class="text-white" id="stats">g = 9.81 m/s²</div>
+        </div>
+        <canvas id="simCanvas" width="800" height="450" class="rounded-xl shadow-2xl shadow-emerald-900/20"></canvas>
+    </div>
+
+    <div class="flex gap-4">
+        <button onclick="setMode('pendulum')" class="px-4 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700">Pendulum</button>
+        <button onclick="setMode('gravity')" class="px-4 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700">Gravity</button>
+        <button onclick="setMode('bouncing')" class="px-4 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-white border border-neutral-700">Bouncing</button>
+        <div class="w-px bg-neutral-700 mx-2"></div>
+        <button onclick="startSim()" class="px-6 py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold">▶ START ANIMATION</button>
+    </div>
+
+    <div class="text-xs text-neutral-500 max-w-lg text-center">
+        Tip: Record a 10s clip of this canvas. Save as 
+        <span class="text-neutral-300">pendulum_correct.mp4</span> (or gravity/bouncing) 
+        and put in <span class="text-neutral-300">frontend/public/simulations/</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const stats = document.getElementById('stats');
+        
+        let mode = 'pendulum';
+        let isRunning = false;
+        let animationId;
+        let time = 0;
+        
+        // Physics constants (Visual scale)
+        const CENTER_X = canvas.width / 2;
+        const CENTER_Y = 100;
+        const PIXELS_PER_METER = 100;
+        const g = 9.81;
+
+        // State variables
+        let pendulum = { length: 2.5, theta: Math.PI / 6, omega: 0 };
+        let ball = { y: 0, v: 0, r: 15 };
+        
+        function setMode(newMode) {
+            mode = newMode;
+            reset();
+            draw();
+            
+            if (mode === 'pendulum') stats.innerText = "g = 9.81 m/s² | T = 3.17s";
+            if (mode === 'gravity') stats.innerText = "g = 9.81 m/s² | s = ½gt²";
+            if (mode === 'bouncing') stats.innerText = "KE + PE = Constant (w/ loss)";
+        }
+
+        function reset() {
+            isRunning = false;
+            cancelAnimationFrame(animationId);
+            time = 0;
+            
+            // Reset states
+            pendulum = { length: 2.5, theta: Math.PI / 6, omega: 0 };
+            ball = { y: 50, v: 0, r: 15 }; // Gravity start
+            if (mode === 'bouncing') ball = { y: 350, v: -1200, r: 15 }; // Bounce start (from ground up?? no drop)
+            if (mode === 'bouncing') ball = { y: 50, v: 0, r: 15 }; 
+        }
+
+        function startSim() {
+            reset();
+            isRunning = true;
+            lastTime = performance.now();
+            loop();
+        }
+
+        let lastTime = 0;
+
+        function loop(timestamp) {
+            if (!isRunning) return;
+            const dt = (timestamp - lastTime) / 1000 || 0;
+            lastTime = timestamp;
+            
+            update(dt);
+            draw();
+            
+            animationId = requestAnimationFrame(loop);
+        }
+
+        function update(dt) {
+            // Cap dt to avoid glitches
+            if (dt > 0.1) dt = 0.1;
+
+            if (mode === 'pendulum') {
+                // T = 2pi sqrt(L/g)
+                // Simple harmonic motion approximation for visual logic (or full pendulum eq)
+                // d2theta/dt2 = -(g/L)sin(theta)
+                const alpha = -(g / pendulum.length) * Math.sin(pendulum.theta);
+                pendulum.omega += alpha * dt * 5; // Speed multiplier for visual feel? No, keep real time
+                // Wait, simulation needs to match real time physics? 
+                // Let's us real physics step
+                
+                // Real physics:
+                // alpha = -g/L * sin(theta)
+                // BUT pixel scale. If L is meters.
+                
+                // Let's just use exact formula for simple harmonic motion for smoothness
+                // theta(t) = theta_max * cos(sqrt(g/L)*t)
+                time += dt;
+                pendulum.theta = (Math.PI/6) * Math.cos(Math.sqrt(g/pendulum.length) * time);
+            }
+            
+            if (mode === 'gravity') {
+                // y = 0.5 * g * t*t
+                time += dt;
+                // Pixels = meters * scale
+                const dropMeters = 0.5 * g * time * time;
+                ball.y = 50 + dropMeters * PIXELS_PER_METER;
+                
+                if (ball.y > canvas.height + 50) isRunning = false;
+            }
+            
+            if (mode === 'bouncing') {
+                const floor = canvas.height - 50;
+                // v = v + g*dt
+                // y = y + v*dt
+                
+                ball.v += g * PIXELS_PER_METER * dt;
+                ball.y += ball.v * dt;
+                
+                if (ball.y >= floor) {
+                    ball.y = floor;
+                    ball.v = -ball.v * 0.85; // Restitution
+                }
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#10b981'; // Emerald 500
+            ctx.fillStyle = '#10b981';
+            ctx.lineWidth = 2;
+
+            if (mode === 'pendulum') {
+                const x = CENTER_X + Math.sin(pendulum.theta) * (pendulum.length * PIXELS_PER_METER);
+                const y = CENTER_Y + Math.cos(pendulum.theta) * (pendulum.length * PIXELS_PER_METER);
+                
+                // Pivot
+                ctx.beginPath();
+                ctx.arc(CENTER_X, CENTER_Y, 5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // String
+                ctx.beginPath();
+                ctx.moveTo(CENTER_X, CENTER_Y);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+                
+                // Bob
+                ctx.beginPath();
+                ctx.arc(x, y, 20, 0, Math.PI * 2);
+                ctx.fillStyle = '#10b981';
+                ctx.fill();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#10b981';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+            else {
+                // Ball modes
+                ctx.beginPath();
+                ctx.arc(CENTER_X, ball.y, 20, 0, Math.PI * 2);
+                ctx.fillStyle = '#10b981';
+                ctx.fill();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#10b981';
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                if (mode === 'bouncing') {
+                    // Floor
+                    ctx.beginPath();
+                    ctx.moveTo(0, canvas.height - 30);
+                    ctx.lineTo(canvas.width, canvas.height - 30);
+                    ctx.strokeStyle = '#666';
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        // Initial draw
+        setMode('pendulum');
+    </script>
+</body>
+</html>

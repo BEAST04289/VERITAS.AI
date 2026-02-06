@@ -5,7 +5,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black.svg)](https://nextjs.org)
-[![Gemini](https://img.shields.io/badge/Gemini-2.0-orange.svg)](https://ai.google.dev)
+[![Gemini](https://img.shields.io/badge/Gemini-3.0-orange.svg)](https://ai.google.dev)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Hackathon](https://img.shields.io/badge/Gemini%203-Hackathon-purple.svg)](https://ai.google.dev)
 
@@ -169,7 +169,7 @@ VERITAS.AI
 
 | Component | Technology | Why |
 |-----------|-----------|-----|
-| **Vision AI** | Gemini 2.0 Flash | Object tracking + trajectory |
+| **Vision AI** | Gemini 3 Experimental | Advanced reasoning chains for physics deduction |
 | **Frontend** | Next.js 15 + Framer Motion | Premium animations |
 | **Backend** | FastAPI + WebSocket | Real-time streaming |
 | **Physics** | NumPy + SciPy | Curve fitting for `g` |
@@ -177,6 +177,30 @@ VERITAS.AI
 | **Charts** | Recharts | Radar chart visualization |
 | **PDF** | jsPDF + AutoTable | Forensic reports |
 | **UI** | Tailwind + Lucide | Cyber-forensics vibe |
+
+---
+
+## 🧠 Powered by Gemini 3 Reasoning
+
+VERITAS specifically uses **Gemini 3 Experimental (gemini-exp-1206)** for Advanced Reasoning Chains:
+
+| Capability | How VERITAS Uses It |
+|------------|--------------------|
+| **Material Inference** | "Is this rubber or steel?" before applying physics equations |
+| **Scene Understanding** | Contextual analysis of environment and lighting |
+| **Physics Chain-of-Thought** | Step-by-step verification visible to user |
+| **Anomaly Detection** | Reasoning about why physics looks "wrong" |
+
+```
+Gemini 3 Reasoning Flow:
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 1: "I observe a falling ball in this video"           │
+│ STEP 2: "Measuring trajectory points over 30 frames"       │
+│ STEP 3: "Applying y = v₀t - ½gt² to extract gravity"      │
+│ STEP 4: "Calculated g = 14.38 m/s² (Expected: 9.81)"      │
+│ STEP 5: "This 47% deviation indicates AI generation"       │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 

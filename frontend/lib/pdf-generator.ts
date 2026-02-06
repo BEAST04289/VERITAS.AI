@@ -29,16 +29,13 @@ export function generateForensicReport(data: ReportData): void {
     const pdf = new jsPDF();
     const pageWidth = pdf.internal.pageSize.getWidth();
 
-    // Colors
     const primaryColor: [number, number, number] = [20, 20, 30];
     const accentColor: [number, number, number] = data.verdict === "synthetic" ? [239, 68, 68] : [34, 197, 94];
     const textGray: [number, number, number] = [100, 100, 100];
 
-    // Header
     pdf.setFillColor(...primaryColor);
     pdf.rect(0, 0, pageWidth, 45, "F");
 
-    // Logo
     pdf.setTextColor(255, 255, 255);
     pdf.setFontSize(24);
     pdf.setFont("helvetica", "bold");
@@ -48,12 +45,10 @@ export function generateForensicReport(data: ReportData): void {
     pdf.setFont("helvetica", "normal");
     pdf.text("FORENSIC ANALYSIS REPORT", 20, 35);
 
-    // Case ID on right
     pdf.setFontSize(9);
     pdf.text(`Case: ${data.caseId}`, pageWidth - 20, 25, { align: "right" });
     pdf.text(data.timestamp, pageWidth - 20, 35, { align: "right" });
 
-    // Verdict Banner
     const verdictY = 55;
     pdf.setFillColor(...accentColor);
     pdf.rect(15, verdictY, pageWidth - 30, 25, "F");
@@ -68,7 +63,6 @@ export function generateForensicReport(data: ReportData): void {
         { align: "center" }
     );
 
-    // Summary Section
     let y = 95;
     pdf.setTextColor(...primaryColor);
     pdf.setFontSize(12);
@@ -95,7 +89,6 @@ export function generateForensicReport(data: ReportData): void {
         y += 8;
     });
 
-    // Physics Checks Table
     y += 10;
     pdf.setTextColor(...primaryColor);
     pdf.setFontSize(12);
@@ -155,10 +148,8 @@ export function generateForensicReport(data: ReportData): void {
         }
     });
 
-    // Get final Y position after table
     const finalY = (pdf as any).lastAutoTable.finalY + 15;
 
-    // Matched Signature (if any)
     if (data.matchedSignature) {
         pdf.setFillColor(255, 243, 205);
         pdf.rect(15, finalY, pageWidth - 30, 20, "F");
@@ -170,7 +161,6 @@ export function generateForensicReport(data: ReportData): void {
         pdf.text(data.matchedSignature, 20, finalY + 15);
     }
 
-    // Footer
     const footerY = pdf.internal.pageSize.getHeight() - 20;
     pdf.setDrawColor(200, 200, 200);
     pdf.line(15, footerY - 5, pageWidth - 15, footerY - 5);
@@ -181,7 +171,6 @@ export function generateForensicReport(data: ReportData): void {
     pdf.text("Powered by Gemini 3 Pro Vision | Newton's Laws Never Lie", 20, footerY + 5);
     pdf.text(`Report ID: ${data.caseId}`, pageWidth - 20, footerY, { align: "right" });
 
-    // Save
     pdf.save(`VERITAS_Report_${data.caseId}.pdf`);
 }
 
