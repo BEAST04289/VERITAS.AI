@@ -54,7 +54,8 @@ export function useVeritasAnalysis(): UseVeritasAnalysisReturn {
     const connect = useCallback(() => {
         if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-        const ws = new WebSocket("ws://localhost:8000/ws/analyze");
+        const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000";
+        const ws = new WebSocket(`${wsUrl}/ws/analyze`);
 
         ws.onopen = () => {
             setIsConnected(true);

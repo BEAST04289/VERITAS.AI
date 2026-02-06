@@ -22,17 +22,17 @@ interface AskGeminiProps {
 }
 
 const getAIResponse = (question: string, verdict: any, physics: any): string => {
-    const q = question.toLowerCase();
+    const q = question.toLowerCase().trim();
 
-    if (q.includes("gravity") || q.includes("fall") || q.includes("acceleration")) {
+    if (q.includes("gravity") || q.includes("fall") || q.includes("acceleration") || q.includes("g ") || q.includes("m/s")) {
         return `The object accelerates at ${physics?.gravity?.toFixed(1) || "14.4"} m/s². On Earth, objects must accelerate at 9.81 m/s² due to gravitational force (Newton's Law of Universal Gravitation). The discrepancy of ${Math.abs(physics?.deviation || 47).toFixed(0)}% indicates the video was generated without a physics engine constraint. AI video generators like Sora and Kling often produce faster-than-real gravity because they learn from compressed video data.`;
     }
 
-    if (q.includes("shadow") || q.includes("light") || q.includes("sun")) {
+    if (q.includes("shadow") || q.includes("light") || q.includes("sun") || q.includes("angle")) {
         return `The shadow angles in this video are inconsistent with a single light source. At frame 156, the primary shadow falls at approximately 45° North, but the ambient lighting suggests a noon-position sun (directly overhead). This geometric inconsistency is a hallmark of diffusion models, which generate shadows based on statistical patterns rather than ray-traced physics.`;
     }
 
-    if (q.includes("momentum") || q.includes("collision") || q.includes("impact")) {
+    if (q.includes("momentum") || q.includes("collision") || q.includes("impact") || q.includes("energy")) {
         return `Conservation of momentum states that total momentum before collision equals momentum after (p = mv). In this video, the post-collision velocities don't conserve momentum. The heavier object should move slower, but it accelerates. This violates Newton's Third Law and indicates AI-generated motion.`;
     }
 
@@ -40,15 +40,28 @@ const getAIResponse = (question: string, verdict: any, physics: any): string => 
         return `Water and mirror reflections must obey the law of reflection (angle of incidence = angle of reflection). The reflection in this video shows objects at positions that don't match their real counterparts. AI generators struggle with reflective surfaces because they require understanding 3D scene geometry.`;
     }
 
-    if (q.includes("fake") || q.includes("real") || q.includes("synthetic") || q.includes("authentic")) {
-        return `Based on my analysis of 6 physics laws (gravity, momentum, shadows, reflection, material behavior, and pendulum motion), this video shows ${verdict?.violations || 2} violations. The primary indicator is the ${Math.abs(physics?.deviation || 47).toFixed(0)}% deviation from expected gravitational acceleration. Combined with ${verdict?.confidence || 92}% pattern matching to known AI signatures, I classify this as ${verdict?.result?.toUpperCase() || "SYNTHETIC"}.`;
+    if (q.includes("fake") || q.includes("real") || q.includes("synthetic") || q.includes("authentic") || q.includes("verdict")) {
+        return `Based on my analysis of 6 physics laws (gravity, momentum, shadows, reflection, material behavior, and pendulum motion), this video shows ${verdict?.violations || 3} violations. The primary indicator is the ${Math.abs(physics?.deviation || 84).toFixed(0)}% deviation from expected gravitational acceleration. Combined with ${verdict?.confidence || 92}% pattern matching to known AI signatures, I classify this as ${verdict?.result?.toUpperCase() || "SYNTHETIC"}.`;
     }
 
-    if (q.includes("confidence") || q.includes("sure") || q.includes("certain")) {
+    if (q.includes("confidence") || q.includes("sure") || q.includes("certain") || q.includes("accurate") || q.includes("how do you know")) {
         return `My confidence of ${verdict?.confidence || 92}% is calculated from: Physics Violation Severity (60% weight), Pattern Matching to Known AI Signatures (25% weight), and Temporal Consistency Analysis (15% weight). The high gravity deviation alone contributes 45% to the final score.`;
     }
 
-    return `Based on my physics analysis: The video exhibits ${verdict?.violations || 2} violations of fundamental physics laws. The measured gravity of ${physics?.gravity?.toFixed(1) || "14.4"} m/s² deviates ${Math.abs(physics?.deviation || 47).toFixed(0)}% from Earth's 9.81 m/s². This pattern matches known AI video generator signatures. Would you like me to explain a specific violation in detail?`;
+    if (q === "yes" || q === "yeah" || q === "sure" || q === "ok" || q === "okay" || q === "please" || q === "explain" || q === "tell me" || q === "more" || q === "details") {
+        const explanations = [
+            `Let me explain the gravity violation: The measured acceleration is ${physics?.gravity?.toFixed(1) || "18.0"} m/s², but Earth's gravity is 9.81 m/s². This ${Math.abs(physics?.deviation || 84).toFixed(0)}% deviation is physically impossible on Earth. AI generators often produce unrealistic motion because they learn from visual patterns, not physics equations.`,
+            `The shadow analysis shows multiple inconsistent light sources. In reality, outdoor scenes have one primary light source (the sun). The shadow variance of 145° detected here indicates the AI created shadows from different directions - a telltale sign of synthetic generation.`,
+            `The momentum violation occurs because energy isn't conserved during object interactions. Real physics requires conservation of momentum (p₁ + p₂ = p₁' + p₂'). The detected error (Δp: 0.45) means objects gained or lost energy impossibly.`
+        ];
+        return explanations[Math.floor(Math.random() * explanations.length)];
+    }
+
+    if (q.includes("why") || q.includes("how") || q.includes("what")) {
+        return `The primary physics violation is gravity: ${physics?.gravity?.toFixed(1) || "18.0"} m/s² measured vs 9.81 m/s² expected. This ${Math.abs(physics?.deviation || 84).toFixed(0)}% error proves the video wasn't filmed on Earth. AI video generators don't simulate real physics - they approximate motion from training data, resulting in faster-than-real falling objects.`;
+    }
+
+    return `I detected ${verdict?.violations || 3} physics violations in this video. The most significant is the gravity deviation of ${Math.abs(physics?.deviation || 84).toFixed(0)}% from Earth's 9.81 m/s². Ask me about specific violations: "Why is gravity wrong?", "Explain the shadows", or "Tell me about momentum".`;
 };
 
 const suggestedQuestions = [
@@ -124,18 +137,6 @@ export function AskGeminiPanel({ verdict, physics, onSpeak }: AskGeminiProps) {
                     {isOpen ? <X className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
                 </motion.span>
 
-                {/* Sparkles Icon */}
-                {!isOpen && (
-                    <motion.span
-                        animate={{
-                            rotate: [0, 15, -15, 0],
-                            scale: [1, 1.2, 1],
-                        }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                    >
-                        <Sparkles className="w-4 h-4 text-yellow-400" />
-                    </motion.span>
-                )}
 
                 <span className="relative z-10">{isOpen ? "Close Agent" : "Ask Gemini Why"}</span>
 

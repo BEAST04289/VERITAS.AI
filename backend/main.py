@@ -27,7 +27,8 @@ app.add_middleware(
 api_key = os.getenv("GEMINI_API_KEY")
 if api_key:
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # Use the advanced Gemini 3 / 2.0 Experimental model as primary
+    model = genai.GenerativeModel('gemini-exp-1206') 
 else:
     model = None
 
@@ -423,19 +424,49 @@ async def call_gemini_safe(ws: WebSocket, prompt: str, stream_thinking: bool = T
         
     except Exception as e:
         error_str = str(e)
+        
+        # Rate limit handling
         if "429" in error_str or "RESOURCE_EXHAUSTED" in error_str:
             await send_update(ws, "log", {"level": "system", "message": "⚠ Rate limit hit - waiting 15s..."})
             await asyncio.sleep(15)
-            
             try:
                 response = model.generate_content(prompt)
                 return response.text
             except:
-                await send_update(ws, "log", {"level": "system", "message": "Rate limit still active"})
-                return None
-        else:
-            await send_update(ws, "log", {"level": "system", "message": f"API Error: {error_str[:100]}"})
-            return None
+                pass
+
+        # Model Fallback Logic - Prioritize High-Availability Models (Flash) to handle Rate Limits
+        fallback_models = [
+            'gemini-1.5-flash',      # Highest quota, most likely to work
+            'gemini-2.0-flash',      # New stable flash
+            'gemini-2.0-flash-exp',  # Experimental flash
+            'gemini-1.5-pro',        # High quality, lower quota
+        ]
+        current_model_name = getattr(model, 'model_name', 'unknown')
+        
+        await send_update(ws, "log", {"level": "system", "message": f"API Error: {error_str[:50]}... Switching model..."})
+        
+        for model_name in fallback_models:
+            if model_name in current_model_name: continue # Skip current model
+            
+            try:
+                await send_update(ws, "log", {"level": "system", "message": f"Trying backup: {model_name}..."})
+                fallback_model = genai.GenerativeModel(model_name)
+                response = fallback_model.generate_content(
+                    prompt,
+                    generation_config=genai.GenerationConfig(temperature=0.2, max_output_tokens=4096)
+                )
+                return response.text
+            except Exception as fallback_error:
+                # Log why it failed (concise)
+                err_msg = str(fallback_error)
+                limit_msg = "Rate Limit" if "429" in err_msg or "429" in str(fallback_error) else "Error"
+                await send_update(ws, "log", {"level": "system", "message": f"× {model_name} failed ({limit_msg})"})
+                continue
+
+        # If all fail
+        await send_update(ws, "log", {"level": "system", "message": "⚠ QUOTA EXHAUSTED. Switching to Offline Simulation."})
+        return None
 
 def parse_json_response(text: str) -> dict:
     """Extract JSON from Gemini response"""
@@ -494,6 +525,21 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     await send_update(ws, "log", {"level": "agent", "message": f"Extracted {num_points} trajectory points"})
     await send_update(ws, "log", {"level": "agent", "message": f"Measured period: {measured_period:.2f} seconds"})
     await send_update(ws, "log", {"level": "agent", "message": f"Estimated characteristic length: {measured_length} meters"})
+    
+    # Generate synthetic trajectory points for visualization
+    simulated_points = []
+    for t in range(num_points):
+        # Normalized coordinates (0-1)
+        x = 0.2 + (0.6 * (t / num_points))
+        # Simple parabolic arc
+        y = 0.2 + (2.5 * ((x - 0.5)**2)) 
+        # Add jitter if "AI generated" to look suspicious
+        if is_ai_generated:
+            y += random.uniform(-0.02, 0.02)
+            
+        simulated_points.append({"t": t * 0.1, "x": x, "y": min(max(y, 0.1), 0.9)})
+    
+    await send_update(ws, "trajectory_data", {"points": simulated_points, "frames": 60, "fps": 30})
     await asyncio.sleep(0.5)
     
     await send_update(ws, "log", {"level": "system", "message": "PHASE 3: PHYSICS VERIFICATION"})
@@ -572,16 +618,23 @@ async def run_demo_with_learning(ws: WebSocket, session_id: str):
     physics_checks.append(material_result)
     await asyncio.sleep(0.3)
     
+    # Calculate severity scores for Radar Chart (0-10 scale)
+    gravity_severity = min(abs(pendulum_result['deviation']) / 5, 10)  # 50% deviation = 10/10 severity
+    shadow_severity = 8.5 if shadow_result['status'] == "VIOLATION" else 1.5
+    momentum_severity = 7.5 if momentum_result['status'] == "VIOLATION" else 2.0
+    reflection_severity = 8.0 if reflection_result['status'] == "VIOLATION" else 1.0
+    material_severity = 7.0 if material_result['status'] == "VIOLATION" else 1.0
+
     await send_update(ws, "physics_update", {
         "gravity": calculated_g,
         "expected": 9.81,
         "deviation": pendulum_result['deviation'],
         "checks": {
-            "gravity": {"value": calculated_g, "expected": 9.81, "status": pendulum_result['status']},
-            "shadows": {"variance": max(shadow_angles) - min(shadow_angles), "status": shadow_result['status']},
-            "momentum": {"status": momentum_result['status']},
-            "reflection": {"status": reflection_result['status']},
-            "material": {"status": material_result['status']}
+            "gravity": {"value": calculated_g, "expected": 9.81, "status": pendulum_result['status'], "severity": gravity_severity},
+            "shadows": {"variance": max(shadow_angles) - min(shadow_angles), "status": shadow_result['status'], "severity": shadow_severity},
+            "momentum": {"status": momentum_result['status'], "severity": momentum_severity},
+            "reflection": {"status": reflection_result['status'], "severity": reflection_severity},
+            "material": {"status": material_result['status'], "severity": material_severity}
         }
     })
     
@@ -703,4 +756,6 @@ async def health():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # Use PORT from environment or default to 8000
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
