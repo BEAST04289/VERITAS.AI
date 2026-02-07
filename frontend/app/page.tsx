@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useRef, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Zap, MessageSquare, AlertTriangle, CheckCircle, Loader2, Video, Shield, Download, Volume2, VolumeX } from "lucide-react";
+import { Upload, Zap, MessageSquare, AlertTriangle, CheckCircle, Loader2, Video, Shield, Download, Volume2, VolumeX, Menu } from "lucide-react";
 import { useVeritasAnalysis } from "@/hooks/use-veritas-analysis";
 import { useKillSwitch } from "@/hooks/use-kill-switch";
 import { useVoice } from "@/hooks/use-voice";
@@ -222,6 +223,13 @@ export default function VeritasCommandCenter() {
               <span className="text-2xl font-semibold tracking-tight text-neutral-500">AI</span>
             </div>
           </div>
+
+          {/* Navigation Links */}
+          <nav className="hidden md:flex items-center gap-6 text-sm">
+            <Link href="/detect" className="text-neutral-400 hover:text-white transition-colors">Detectors</Link>
+            <Link href="/how-it-works" className="text-neutral-400 hover:text-white transition-colors">How It Works</Link>
+            <Link href="/pricing" className="text-neutral-400 hover:text-white transition-colors">Pricing</Link>
+          </nav>
 
           <div className="flex items-center gap-6 text-xs text-neutral-500">
             {/* Voice Toggle (Jarvis Mode) */}
