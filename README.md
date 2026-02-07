@@ -6,7 +6,7 @@
 
 A forensic AI engine that empowers **everyone** to detect AI-generated videos using Newtonian Physics. Features **"Ask Gemini Why"** for explainable AI reasoning and **"Offline Simulation"** for zero-crash reliability.
 
-🌐 **[Try the Live Demo](https://veritas-kc3e3ebx0-beast04289s-projects.vercel.app/)**  
+🌐 **[Try the Live Demo](https://veritas-cj593jblx-beast04289s-projects.vercel.app/)**  
 [Architecture](#-architecture) • [Performance](#-performance-benchmarks) • [Tech Stack](#-tech-stack-decisions) • [Pricing](#-pricing-model) • [Vision](#-founders-vision)
 
 ---
