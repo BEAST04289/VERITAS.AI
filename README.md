@@ -132,13 +132,16 @@ We believe in honesty. Here are the challenges we're facing:
 *   **Q3 2027:** **Mobile App** (On-device analysis for privacy).
 
 ---
+## 🛡️ Future Plans
 
-## 🛡️ Intellectual Property
+If VERITAS gets traction, I'm planning to:
+- File a patent for the physics-based detection method
+- Open-source the core physics engine (MIT license)
+- Partner with news orgs for real-world testing
+- Apply to Y Combinator or similar accelerators
 
-*   **Patent Pending:** I will patent "Method for Newtonian Physics Validation in Generative Video Streams"
-*   **Trademark Pending:** I will register the trademarks for VERITAS.AI™ and the "Physics-First" logo.
-
----
+For now, the entire codebase is MIT licensed. Use it, fork it, 
+improve it. Just credit the original work.
 
 ## 🎯 Founder's Vision
 
@@ -198,6 +201,16 @@ We realized that while AI can render perfect lighting, **it cannot simulate perf
 ### Hackathon Mission
 We built VERITAS for the **Gemini 3 Hackathon** to restore trust in digital media. We are proving that **Multimodal AI + Classical Physics** is the ultimate defense against deepfakes.
 
+---
+## 📧 Contact
+
+Built by Shaurya Upadhyay  
+📧 shaurya04289@gmail.com  
+🔗 [LinkedIn](https://linkedin.com/in/shaurya--upadhyay)  
+🐦 [Twitter](https://twitter.com/shaurya04289)
+
+Want to collaborate on VERITAS or discuss deepfake detection?  
+DM me - I'm always down to chat about physics + AI.
 ---
 
 ## 🤝 Contributing
