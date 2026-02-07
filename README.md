@@ -135,8 +135,8 @@ We believe in honesty. Here are the challenges we're facing:
 
 ## 🛡️ Intellectual Property
 
-*   **Patent Pending:** "Method for Newtonian Physics Validation in Generative Video Streams" (Application No. 2026-X739)
-*   **Trademark:** VERITAS.AI™ and the "Physics-First" logo are registered trademarks.
+*   **Patent Pending:** I will patent "Method for Newtonian Physics Validation in Generative Video Streams"
+*   **Trademark Pending:** I will register the trademarks for VERITAS.AI™ and the "Physics-First" logo.
 
 ---
 
