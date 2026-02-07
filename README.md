@@ -1,4 +1,4 @@
-# 🕵️‍♀️ VERITAS.AI™
+# 🕵️‍♀️ VERITAS.AI
 ### Physics-First Deepfake Detection powered by Gemini 3
 ![License](https://img.shields.io/badge/License-MIT-blue.svg) ![Python](https://img.shields.io/badge/Python-3.11-yellow) ![Gemini](https://img.shields.io/badge/AI-Gemini_3_Experimental-8E44AD) ![Status](https://img.shields.io/badge/Status-Hackathon_Ready-success) ![Patent](https://img.shields.io/badge/Patent-Pending-orange)
 
